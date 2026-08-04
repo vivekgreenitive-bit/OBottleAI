@@ -46,6 +46,10 @@ async def upload_file(file: UploadFile = File(...), source: str = Form("CSV_Uplo
     now = datetime.utcnow()
     
     try:
+        # Clear existing operational records first to ensure we don't accumulate old uploads
+        db.query(OperationalRecord).delete()
+        db.commit()
+
         # Helper to look up key dynamically (case-insensitive, ignoring underscores/spaces/hyphens)
         def find_field(row: dict, keys: list, default=None):
             normalized_row = {str(k).lower().replace(" ", "").replace("_", "").replace("-", ""): v for k, v in row.items()}
