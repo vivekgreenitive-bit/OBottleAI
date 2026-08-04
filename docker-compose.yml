@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - INGESTION_SERVICE_URL=http://ingestion-service:8081
+      - ORCHESTRATOR_SERVICE_URL=http://orchestrator-service:8082
+      - EXECUTION_SERVICE_URL=http://execution-service:8083
+    volumes:
+      - backend-db:/app/app
+    depends_on:
+      - ingestion-service
+      - orchestrator-service
+      - execution-service
+
+  ingestion-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: uvicorn app.api.ingestion_service:app --host 0.0.0.0 --port 8081
+    ports:
+      - "8081:8081"
+    volumes:
+      - backend-db:/app/app
+
+  orchestrator-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: uvicorn app.api.orchestrator_service:app --host 0.0.0.0 --port 8082
+    ports:
+      - "8082:8082"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      - backend-db:/app/app
+
+  execution-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: uvicorn app.api.execution_service:app --host 0.0.0.0 --port 8083
+    ports:
+      - "8083:8083"
+    volumes:
+      - backend-db:/app/app
+      
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api-gateway
+
+volumes:
+  backend-db:

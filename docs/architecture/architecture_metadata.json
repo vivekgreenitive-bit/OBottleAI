@@ -1,0 +1,1480 @@
+{
+  "version": "1.0",
+  "diagramId": "ab44076c-75d1-4507-8f13-630b3b0c1629",
+  "title": "Architecture Diagram",
+  "nodes": [
+    {
+      "id": "data-sources-client",
+      "type": "client",
+      "label": "Enterprise Data Sources",
+      "generic_name": "Enterprise Data Sources",
+      "ports": [
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "in",
+          "label": "Input",
+          "side": "left"
+        },
+        {
+          "id": "right-2",
+          "side": "right",
+          "label": "Right 2"
+        }
+      ],
+      "data": {
+        "description": "External enterprise systems providing raw operational data.",
+        "tech": [
+          "Jira API",
+          "GitHub API",
+          "Salesforce",
+          "Zendesk"
+        ],
+        "isolated": false
+      }
+    },
+    {
+      "id": "ingestion-service",
+      "type": "service",
+      "label": "Ingestion Service",
+      "generic_name": "Ingestion Service",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "left-2",
+          "label": "Left 2",
+          "side": "left"
+        },
+        {
+          "id": "right-2",
+          "side": "right",
+          "label": "Right 2"
+        }
+      ],
+      "data": {
+        "description": "Ingests raw data from enterprise sources. Deterministic logic.",
+        "tech": [
+          "FastAPI",
+          "Python",
+          "Docker",
+          "Pydantic"
+        ]
+      }
+    },
+    {
+      "id": "normalization-service",
+      "type": "service",
+      "label": "Normalization Service",
+      "generic_name": "Data Normalization Layer",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "right-2",
+          "label": "Right 2",
+          "side": "right"
+        },
+        {
+          "id": "right-3",
+          "label": "Right 3",
+          "side": "right"
+        },
+        {
+          "id": "left-2",
+          "side": "left",
+          "label": "Left 2"
+        }
+      ],
+      "data": {
+        "description": "Cleans and redacts PII from operational data. Deterministic logic.",
+        "tech": [
+          "Python",
+          "Pandas",
+          "Presidio",
+          "Docker"
+        ]
+      }
+    },
+    {
+      "id": "orchestrator-agent",
+      "type": "service",
+      "label": "Orchestrator Agent",
+      "generic_name": "Agent Orchestrator",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "db-out",
+          "label": "db-out",
+          "side": "bottom"
+        },
+        {
+          "id": "left-2",
+          "label": "Left 2",
+          "side": "left"
+        },
+        {
+          "id": "right-2",
+          "label": "Right 2",
+          "side": "right"
+        },
+        {
+          "id": "left-3",
+          "label": "Left 3",
+          "side": "left"
+        },
+        {
+          "id": "right-3",
+          "label": "Right 3",
+          "side": "right"
+        },
+        {
+          "id": "left-4",
+          "label": "Left 4",
+          "side": "left"
+        },
+        {
+          "id": "right-4",
+          "label": "Right 4",
+          "side": "right"
+        },
+        {
+          "id": "left-5",
+          "label": "Left 5",
+          "side": "left"
+        },
+        {
+          "id": "right-5",
+          "label": "Right 5",
+          "side": "right"
+        },
+        {
+          "id": "left-6",
+          "label": "Left 6",
+          "side": "left"
+        },
+        {
+          "id": "right-6",
+          "label": "Right 6",
+          "side": "right"
+        },
+        {
+          "id": "right-7",
+          "label": "Right 7",
+          "side": "right"
+        },
+        {
+          "id": "right-8",
+          "label": "Right 8",
+          "side": "right"
+        },
+        {
+          "id": "right-9",
+          "label": "Right 9",
+          "side": "right"
+        },
+        {
+          "id": "left-7",
+          "label": "Left 7",
+          "side": "left"
+        },
+        {
+          "id": "right-10",
+          "label": "Right 10",
+          "side": "right"
+        },
+        {
+          "id": "right-11",
+          "label": "Right 11",
+          "side": "right"
+        },
+        {
+          "id": "left-8",
+          "label": "Left 8",
+          "side": "left"
+        },
+        {
+          "id": "left-9",
+          "side": "left",
+          "label": "Left 9"
+        }
+      ],
+      "data": {
+        "description": "Coordinates multi-agent workflows using LangGraph. Gemini reasoning.",
+        "tech": [
+          "LangGraph",
+          "Python",
+          "Gemini Pro 1.5",
+          "Docker"
+        ]
+      }
+    },
+    {
+      "id": "data-analysis-agent",
+      "type": "service",
+      "label": "Data Analysis Agent",
+      "generic_name": "Data Analysis Agent",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "right-2",
+          "side": "right",
+          "label": "Right 2"
+        }
+      ],
+      "data": {
+        "description": "Deterministic metrics and rule-based anomaly detection",
+        "tech": [
+          "unspecified"
+        ]
+      }
+    },
+    {
+      "id": "bottleneck-detection-agent",
+      "type": "service",
+      "label": "Bottleneck Detection & Prediction Agent",
+      "generic_name": "Bottleneck Detection Agent",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "left-2",
+          "label": "Left 2",
+          "side": "left"
+        },
+        {
+          "id": "right-2",
+          "side": "right",
+          "label": "Right 2"
+        }
+      ],
+      "data": {
+        "description": "Deterministic metrics and rule-based anomaly detection. Predicts future bottlenecks.",
+        "tech": [
+          "unspecified"
+        ]
+      }
+    },
+    {
+      "id": "root-cause-agent",
+      "type": "service",
+      "label": "Root Cause Agent",
+      "generic_name": "Root Cause Agent",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "left-2",
+          "label": "Left 2",
+          "side": "left"
+        },
+        {
+          "id": "right-2",
+          "side": "right",
+          "label": "Right 2"
+        }
+      ],
+      "data": {
+        "description": "Gemini-powered reasoning for root-cause explanation.",
+        "tech": [
+          "unspecified"
+        ]
+      }
+    },
+    {
+      "id": "impact-assessment-agent",
+      "type": "service",
+      "label": "Impact Assessment Agent",
+      "generic_name": "Impact Assessment Agent",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "left-2",
+          "label": "Left 2",
+          "side": "left"
+        },
+        {
+          "id": "right-2",
+          "side": "right",
+          "label": "Right 2"
+        }
+      ],
+      "data": {
+        "description": "Gemini-powered reasoning for impact interpretation (Customer, SLA, Delay, Cost, Revenue).",
+        "tech": [
+          "unspecified"
+        ]
+      }
+    },
+    {
+      "id": "recommendation-agent",
+      "type": "service",
+      "label": "Recommendation Agent",
+      "generic_name": "Recommendation Agent",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "right-2",
+          "label": "Right 2",
+          "side": "right"
+        },
+        {
+          "id": "left-2",
+          "side": "left",
+          "label": "Left 2"
+        }
+      ],
+      "data": {
+        "description": "Gemini-powered recommendations (Bottleneck, Root Cause, Priority, Action, Owner, Outcome).",
+        "tech": [
+          "unspecified"
+        ]
+      }
+    },
+    {
+      "id": "action-execution-agent",
+      "type": "service",
+      "label": "Action Execution Agent",
+      "generic_name": "Action Execution Agent",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "left-2",
+          "side": "left",
+          "label": "Left 2"
+        }
+      ],
+      "data": {
+        "description": "Executes approved actions (Jira, Slack). Deterministic logic.",
+        "tech": [
+          "Python",
+          "FastAPI",
+          "Docker"
+        ]
+      }
+    },
+    {
+      "id": "operational-db",
+      "type": "database",
+      "label": "Operational DB",
+      "generic_name": "main database",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "top"
+        },
+        {
+          "id": "in",
+          "label": "Input",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "Output",
+          "side": "right"
+        },
+        {
+          "id": "left-2",
+          "side": "left",
+          "label": "Left 2"
+        }
+      ],
+      "data": {
+        "engine": "PostgreSQL",
+        "tech": [
+          "Operational DB"
+        ],
+        "description": "Stores core data",
+        "isolated": false
+      }
+    },
+    {
+      "id": "vector-knowledge-base-db",
+      "type": "database",
+      "label": "Vector Knowledge Base",
+      "generic_name": "main database",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "top"
+        },
+        {
+          "id": "in",
+          "label": "Input",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "Output",
+          "side": "right"
+        }
+      ],
+      "data": {
+        "engine": "ChromaDB",
+        "tech": [
+          "Vector Knowledge Base"
+        ],
+        "description": "Stores core data",
+        "isolated": false
+      }
+    },
+    {
+      "id": "agent-state-store-cache",
+      "type": "cache",
+      "label": "Agent State Store",
+      "generic_name": "fast temporary storage",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "top"
+        },
+        {
+          "id": "in",
+          "label": "Input",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "Output",
+          "side": "right"
+        }
+      ],
+      "data": {
+        "engine": "Redis",
+        "tech": [
+          "Agent State Store"
+        ],
+        "description": "Stores cached data",
+        "isolated": false
+      }
+    },
+    {
+      "id": "ops-dashboard-frontend",
+      "type": "frontend",
+      "label": "Operations Dashboard",
+      "generic_name": "Operations Dashboard",
+      "ports": [
+        {
+          "id": "out",
+          "label": "out",
+          "side": "bottom"
+        },
+        {
+          "id": "in",
+          "label": "Input",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "Output",
+          "side": "right"
+        },
+        {
+          "id": "left-2",
+          "label": "Left 2",
+          "side": "left"
+        },
+        {
+          "id": "right-2",
+          "side": "right",
+          "label": "Right 2"
+        }
+      ],
+      "data": {
+        "description": "Unified view showing: bottleneck, root cause, priority, recommended action, owner, and expected outcome.",
+        "tech": [
+          "React",
+          "Tailwind CSS",
+          "Recharts"
+        ]
+      }
+    },
+    {
+      "id": "notification-channels-client",
+      "type": "client",
+      "label": "Notification Channels",
+      "generic_name": "Notification Channels",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "Output",
+          "side": "right"
+        }
+      ],
+      "data": {
+        "description": "External notification and task management systems.",
+        "tech": [
+          "Slack Webhooks",
+          "Jira API"
+        ],
+        "isolated": false
+      }
+    },
+    {
+      "id": "human-approval-gate",
+      "type": "service",
+      "label": "Human Approval Gate",
+      "generic_name": "Manual Review Step",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "right-2",
+          "side": "right",
+          "label": "Right 2"
+        }
+      ],
+      "data": {
+        "description": "Mandatory human review step for all AI-generated recommendations.",
+        "tech": [
+          "React UI",
+          "FastAPI",
+          "Docker"
+        ]
+      }
+    },
+    {
+      "id": "security-governance-service",
+      "type": "service",
+      "label": "Security & Governance",
+      "generic_name": "Security Layer",
+      "ports": [
+        {
+          "id": "out",
+          "label": "out",
+          "side": "bottom"
+        },
+        {
+          "id": "in",
+          "label": "Input",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "Output",
+          "side": "right"
+        },
+        {
+          "id": "right-2",
+          "side": "right",
+          "label": "Right 2"
+        }
+      ],
+      "data": {
+        "description": "Cross-cutting layer for RBAC, Secrets, Encryption, and Audit.",
+        "tech": [
+          "HashiCorp Vault",
+          "Auth0",
+          "Presidio",
+          "Docker"
+        ]
+      }
+    },
+    {
+      "id": "audit-logs-db",
+      "type": "database",
+      "label": "Audit Logs",
+      "generic_name": "main database",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "top"
+        },
+        {
+          "id": "in",
+          "label": "Input",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "Output",
+          "side": "right"
+        }
+      ],
+      "data": {
+        "engine": "PostgreSQL (Immutable)",
+        "tech": [
+          "Audit Logs"
+        ],
+        "description": "Stores core data",
+        "isolated": false
+      }
+    },
+    {
+      "id": "enterprise-api-gateway",
+      "type": "api-gateway",
+      "label": "Enterprise API Gateway",
+      "generic_name": "main request manager",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "right-2",
+          "label": "Right 2",
+          "side": "right"
+        },
+        {
+          "id": "left-2",
+          "side": "left",
+          "label": "Left 2"
+        }
+      ],
+      "data": {
+        "tech": [
+          "Enterprise API Gateway"
+        ],
+        "description": "Routes incoming requests",
+        "isolated": false
+      }
+    },
+    {
+      "id": "ingestion-queue",
+      "type": "message-queue",
+      "label": "Ingestion Queue",
+      "generic_name": "message queue",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "left-2",
+          "label": "Left 2",
+          "side": "left"
+        },
+        {
+          "id": "right-2",
+          "side": "right",
+          "label": "Right 2"
+        }
+      ],
+      "data": {
+        "description": "Asynchronous buffer for high-volume operational data ingestion.",
+        "tech": [
+          "RabbitMQ",
+          "Docker",
+          "AMQP"
+        ],
+        "cloud": "AWS/GCP/Azure",
+        "isolated": false
+      }
+    },
+    {
+      "id": "monitoring-observability",
+      "type": "service",
+      "label": "Monitoring & Observability",
+      "generic_name": "monitoring service",
+      "ports": [
+        {
+          "id": "in",
+          "label": "Metrics/Logs In",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "Output",
+          "side": "right"
+        }
+      ],
+      "data": {
+        "isolated": true,
+        "tech": [
+          "unspecified"
+        ]
+      }
+    },
+    {
+      "id": "github-repo",
+      "type": "client",
+      "label": "GitHub Repository",
+      "generic_name": "source control",
+      "ports": [
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        },
+        {
+          "id": "in",
+          "label": "Input",
+          "side": "left"
+        }
+      ],
+      "data": {
+        "description": "Source code repository for the platform.",
+        "tech": [
+          "GitHub"
+        ],
+        "isolated": false
+      }
+    },
+    {
+      "id": "cicd-pipeline",
+      "type": "service",
+      "label": "CI/CD Pipeline",
+      "generic_name": "CI/CD pipeline",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "out",
+          "side": "right"
+        }
+      ],
+      "data": {
+        "description": "Automated build, test, and deployment pipeline.",
+        "tech": [
+          "GitHub Actions",
+          "Docker Buildx"
+        ],
+        "isolated": false
+      }
+    },
+    {
+      "id": "container-registry",
+      "type": "service",
+      "label": "Container Registry",
+      "generic_name": "container registry",
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "side": "left"
+        },
+        {
+          "id": "out",
+          "label": "Output",
+          "side": "right"
+        }
+      ],
+      "data": {
+        "description": "Secure storage for containerized service images.",
+        "tech": [
+          "Docker Hub",
+          "GHCR",
+          "AWS ECR"
+        ],
+        "isolated": true
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "sources-to-ingestion",
+      "source": {
+        "nodeId": "data-sources-client",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "ingestion-service",
+        "portId": "in"
+      },
+      "type": "http",
+      "label": null
+    },
+    {
+      "id": "ingestion-to-norm",
+      "source": {
+        "nodeId": "ingestion-service",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "normalization-service",
+        "portId": "in"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "norm-to-orch",
+      "source": {
+        "nodeId": "normalization-service",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "orchestrator-agent",
+        "portId": "in"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "orch-to-analysis",
+      "source": {
+        "nodeId": "orchestrator-agent",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "data-analysis-agent",
+        "portId": "in"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "analysis-agent-to-orchestrator-result",
+      "source": {
+        "nodeId": "data-analysis-agent",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "orchestrator-agent",
+        "portId": "left-2"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "orch-to-detection",
+      "source": {
+        "nodeId": "orchestrator-agent",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "bottleneck-detection-agent",
+        "portId": "in"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "detect-to-orch",
+      "source": {
+        "nodeId": "bottleneck-detection-agent",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "orchestrator-agent",
+        "portId": "left-3"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "orch-to-root-cause",
+      "source": {
+        "nodeId": "orchestrator-agent",
+        "portId": "right-3"
+      },
+      "target": {
+        "nodeId": "root-cause-agent",
+        "portId": "in"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "root-cause-agent-to-orchestrator-result",
+      "source": {
+        "nodeId": "root-cause-agent",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "orchestrator-agent",
+        "portId": "left-4"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "orch-to-impact",
+      "source": {
+        "nodeId": "orchestrator-agent",
+        "portId": "right-4"
+      },
+      "target": {
+        "nodeId": "impact-assessment-agent",
+        "portId": "in"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "impact-agent-to-orchestrator-result",
+      "source": {
+        "nodeId": "impact-assessment-agent",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "orchestrator-agent",
+        "portId": "left-5"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "orch-to-rec",
+      "source": {
+        "nodeId": "orchestrator-agent",
+        "portId": "right-5"
+      },
+      "target": {
+        "nodeId": "recommendation-agent",
+        "portId": "in"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "recommendation-agent-to-orchestrator-result",
+      "source": {
+        "nodeId": "recommendation-agent",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "orchestrator-agent",
+        "portId": "left-6"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "orchestrator-to-execution-agent-task",
+      "source": {
+        "nodeId": "orchestrator-agent",
+        "portId": "right-6"
+      },
+      "target": {
+        "nodeId": "action-execution-agent",
+        "portId": "in"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "exec-to-notify",
+      "source": {
+        "nodeId": "action-execution-agent",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "notification-channels-client",
+        "portId": "in"
+      },
+      "type": "http",
+      "label": null
+    },
+    {
+      "id": "orch-to-db",
+      "source": {
+        "nodeId": "orchestrator-agent",
+        "portId": "right-7"
+      },
+      "target": {
+        "nodeId": "operational-db",
+        "portId": "in"
+      },
+      "type": "database",
+      "label": "Store Data"
+    },
+    {
+      "id": "orch-to-vector",
+      "source": {
+        "nodeId": "orchestrator-agent",
+        "portId": "right-8"
+      },
+      "target": {
+        "nodeId": "vector-knowledge-base-db",
+        "portId": "in"
+      },
+      "type": "database",
+      "label": "Retrieve Context"
+    },
+    {
+      "id": "orch-to-state",
+      "source": {
+        "nodeId": "orchestrator-agent",
+        "portId": "right-9"
+      },
+      "target": {
+        "nodeId": "agent-state-store-cache",
+        "portId": "in"
+      },
+      "type": "cache",
+      "label": "Manage State"
+    },
+    {
+      "id": "dashboard-to-orchestrator-api",
+      "source": {
+        "nodeId": "ops-dashboard-frontend",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "orchestrator-agent",
+        "portId": "left-7"
+      },
+      "type": "http",
+      "label": null
+    },
+    {
+      "id": "rec-to-gate",
+      "source": {
+        "nodeId": "recommendation-agent",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "human-approval-gate",
+        "portId": "in"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "gate-to-exec",
+      "source": {
+        "nodeId": "human-approval-gate",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "action-execution-agent",
+        "portId": "left-2"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "gate-to-dashboard",
+      "source": {
+        "nodeId": "human-approval-gate",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "ops-dashboard-frontend",
+        "portId": "in"
+      },
+      "type": "websocket",
+      "label": null
+    },
+    {
+      "id": "orch-to-sec",
+      "source": {
+        "nodeId": "orchestrator-agent",
+        "portId": "right-10"
+      },
+      "target": {
+        "nodeId": "security-governance-service",
+        "portId": "in"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "sec-to-audit",
+      "source": {
+        "nodeId": "security-governance-service",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "audit-logs-db",
+        "portId": "in"
+      },
+      "type": "database",
+      "label": "Log Actions"
+    },
+    {
+      "id": "norm-to-db",
+      "source": {
+        "nodeId": "normalization-service",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "operational-db",
+        "portId": "left-2"
+      },
+      "type": "database",
+      "label": null
+    },
+    {
+      "id": "orch-to-dash",
+      "source": {
+        "nodeId": "orchestrator-agent",
+        "portId": "right-11"
+      },
+      "target": {
+        "nodeId": "ops-dashboard-frontend",
+        "portId": "left-2"
+      },
+      "type": "http",
+      "label": null
+    },
+    {
+      "id": "sec-to-orch",
+      "source": {
+        "nodeId": "security-governance-service",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "orchestrator-agent",
+        "portId": "left-8"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "analysis-to-detect",
+      "source": {
+        "nodeId": "data-analysis-agent",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "bottleneck-detection-agent",
+        "portId": "left-2"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "sources-to-gw",
+      "source": {
+        "nodeId": "data-sources-client",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "enterprise-api-gateway",
+        "portId": "in"
+      },
+      "type": "http",
+      "label": null
+    },
+    {
+      "id": "gw-to-ingestion",
+      "source": {
+        "nodeId": "enterprise-api-gateway",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "ingestion-service",
+        "portId": "left-2"
+      },
+      "type": "http",
+      "label": null
+    },
+    {
+      "id": "norm-to-queue",
+      "source": {
+        "nodeId": "normalization-service",
+        "portId": "right-3"
+      },
+      "target": {
+        "nodeId": "ingestion-queue",
+        "portId": "in"
+      },
+      "type": "async-event",
+      "label": null
+    },
+    {
+      "id": "queue-to-orch",
+      "source": {
+        "nodeId": "ingestion-queue",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "orchestrator-agent",
+        "portId": "left-9"
+      },
+      "type": "async-event",
+      "label": null
+    },
+    {
+      "id": "repo-to-cicd",
+      "source": {
+        "nodeId": "github-repo",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "cicd-pipeline",
+        "portId": "in"
+      },
+      "type": "http",
+      "label": null
+    },
+    {
+      "id": "cicd-to-reg",
+      "source": {
+        "nodeId": "cicd-pipeline",
+        "portId": "out"
+      },
+      "target": {
+        "nodeId": "container-registry",
+        "portId": "in"
+      },
+      "type": "http",
+      "label": null
+    },
+    {
+      "id": "592cc425-6f99-48f5-a5e2-54ee31f1cfa0",
+      "source": {
+        "nodeId": "enterprise-api-gateway",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "monitoring-observability",
+        "portId": "in"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "ingestion-to-queue",
+      "source": {
+        "nodeId": "ingestion-service",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "ingestion-queue",
+        "portId": "left-2"
+      },
+      "type": "async-event",
+      "label": null
+    },
+    {
+      "id": "queue-to-norm",
+      "source": {
+        "nodeId": "ingestion-queue",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "normalization-service",
+        "portId": "left-2"
+      },
+      "type": "async-event",
+      "label": null
+    },
+    {
+      "id": "detect-to-root",
+      "source": {
+        "nodeId": "bottleneck-detection-agent",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "root-cause-agent",
+        "portId": "left-2"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "root-to-impact",
+      "source": {
+        "nodeId": "root-cause-agent",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "impact-assessment-agent",
+        "portId": "left-2"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "impact-to-rec",
+      "source": {
+        "nodeId": "impact-assessment-agent",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "recommendation-agent",
+        "portId": "left-2"
+      },
+      "type": "internal-api",
+      "label": null
+    },
+    {
+      "id": "dash-to-gw",
+      "source": {
+        "nodeId": "ops-dashboard-frontend",
+        "portId": "right-2"
+      },
+      "target": {
+        "nodeId": "enterprise-api-gateway",
+        "portId": "left-2"
+      },
+      "type": "http",
+      "label": null
+    }
+  ],
+  "groups": [
+    {
+      "children": [
+        "orchestrator-agent",
+        "data-analysis-agent",
+        "bottleneck-detection-agent",
+        "root-cause-agent",
+        "impact-assessment-agent",
+        "recommendation-agent"
+      ],
+      "id": "agent-orchestration-group",
+      "label": "Multi-Agent Orchestration (Gemini Powered)"
+    },
+    {
+      "children": [
+        "ingestion-service",
+        "ingestion-queue",
+        "normalization-service"
+      ],
+      "id": "ingestion-layer-group",
+      "label": "Data Ingestion & Processing Layer"
+    },
+    {
+      "children": [
+        "data-sources-client",
+        "notification-channels-client",
+        "github-repo"
+      ],
+      "id": "external-systems-group",
+      "label": "External Systems & Integrations"
+    },
+    {
+      "children": [
+        "enterprise-api-gateway",
+        "ops-dashboard-frontend"
+      ],
+      "id": "edge-layer-group",
+      "label": "Edge & User Interface Layer"
+    },
+    {
+      "children": [
+        "human-approval-gate",
+        "action-execution-agent"
+      ],
+      "id": "execution-layer-group",
+      "label": "Human-in-the-Loop & Execution Layer"
+    },
+    {
+      "children": [
+        "operational-db",
+        "vector-knowledge-base-db",
+        "agent-state-store-cache",
+        "audit-logs-db"
+      ],
+      "id": "data-storage-group",
+      "label": "Data & Knowledge Storage Layer"
+    },
+    {
+      "children": [
+        "security-governance-service",
+        "monitoring-observability",
+        "cicd-pipeline",
+        "container-registry"
+      ],
+      "id": "infrastructure-group",
+      "label": "Security, Governance & Infrastructure"
+    }
+  ],
+  "metadata": {}
+}
