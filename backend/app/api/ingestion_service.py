@@ -68,6 +68,19 @@ async def upload_file(file: UploadFile = File(...), source: str = Form("CSV_Uplo
                         continue
                 return None
             
+            def parse_float(val):
+                if val is None:
+                    return 0.0
+                val_str = str(val).strip().lower()
+                if val_str in ("yes", "true", "y", "t"):
+                    return 1.0
+                if val_str in ("no", "false", "n", "f", ""):
+                    return 0.0
+                try:
+                    return float(val)
+                except ValueError:
+                    return 0.0
+            
             raw_owner = find_field(row, ["owner", "assignee"], "Unassigned")
             redacted_owner = re.sub(r'[\w\.-]+@[\w\.-]+', '[REDACTED_EMAIL]', str(raw_owner))
             
@@ -85,11 +98,11 @@ async def upload_file(file: UploadFile = File(...), source: str = Form("CSV_Uplo
                 due_date=parse_date(find_field(row, ["due_date", "due", "due_at", "deadline"])),
                 completed_date=parse_date(find_field(row, ["completed_date", "completed", "completed_at", "resolved", "resolved_at"])),
                 dependencies=find_field(row, ["dependencies", "depends_on", "dependency"]),
-                estimated_effort=float(find_field(row, ["estimated_effort", "estimated", "effort", "story_points", "estimate"], 0.0) or 0.0),
-                actual_effort=float(find_field(row, ["actual_effort", "actual", "time_spent"], 0.0) or 0.0),
-                blocked_duration=float(find_field(row, ["blocked_duration", "blocked", "blocked_time", "blocked_days"], 0.0) or 0.0),
-                revenue_impact=float(find_field(row, ["revenue_impact", "revenue"], 0.0) or 0.0),
-                cost_impact=float(find_field(row, ["cost_impact", "cost"], 0.0) or 0.0)
+                estimated_effort=parse_float(find_field(row, ["estimated_effort", "estimated", "effort", "story_points", "estimate", "estimated_hours"])),
+                actual_effort=parse_float(find_field(row, ["actual_effort", "actual", "time_spent", "actual_hours"])),
+                blocked_duration=parse_float(find_field(row, ["blocked_duration", "blocked", "blocked_time", "blocked_days", "days_open"])),
+                revenue_impact=parse_float(find_field(row, ["revenue_impact", "revenue"])),
+                cost_impact=parse_float(find_field(row, ["cost_impact", "cost"]))
             )
             db.add(record)
             records_count += 1
