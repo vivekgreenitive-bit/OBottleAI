@@ -43,8 +43,17 @@ async def upload_file(file: UploadFile = File(...), source: str = Form("CSV_Uplo
         raise HTTPException(status_code=400, detail="Only CSV uploads supported.")
         
     contents = await file.read()
-    decoded = contents.decode('utf-8')
-    reader = csv.DictReader(io.StringIO(decoded))
+    decoded = contents.decode('utf-8').strip()
+    # Strip wrapping quotes around entire lines if exported with outer quotes
+    cleaned_lines = []
+    for line in decoded.splitlines():
+        line_str = line.strip()
+        if line_str.startswith('"') and line_str.endswith('"') and line_str.count('"') == 2:
+            line_str = line_str[1:-1]
+        cleaned_lines.append(line_str)
+    cleaned_csv = "\n".join(cleaned_lines)
+    
+    reader = csv.DictReader(io.StringIO(cleaned_csv))
     headers = reader.fieldnames or []
     
     # Call Gemini LLM to map arbitrary column headers dynamically
