@@ -55,6 +55,7 @@ class WorkflowOrchestrator:
         if status_callback:
             status_callback(2, "Operational metrics analysis", "running", "Calculating backlog cycle times & SLA breach ratios...", "0.0s")
         metrics = self.analysis_agent.run(db, batch_id=batch_id)
+        time.sleep(0.6)
         if status_callback:
             status_callback(2, "Operational metrics analysis", "completed", f"Processed backlog metrics across records.", f"{round(time.time() - step2_time, 1)}s")
 
@@ -63,6 +64,7 @@ class WorkflowOrchestrator:
         if status_callback:
             status_callback(3, "Bottleneck detection & prediction", "running", "Scanning rule engine for overloaded resources & blocked chains...", "0.0s")
         risks = self.detection_agent.run(db, metrics)
+        time.sleep(0.7)
         if status_callback:
             status_callback(3, "Bottleneck detection & prediction", "completed", f"Identified {len(risks)} operational risk factors.", f"{round(time.time() - step3_time, 1)}s")
 
@@ -106,6 +108,7 @@ class WorkflowOrchestrator:
             schema=GeminiOrchestratorSchema,
             system_instruction=system_instruction
         )
+        time.sleep(0.8)
         if status_callback:
             status_callback(4, "Root-cause analysis", "completed", f"Root cause synthesized: {result_data.bottleneck_title[:45]}...", f"{round(time.time() - step4_time, 1)}s")
 
@@ -129,6 +132,7 @@ class WorkflowOrchestrator:
             revenue_risk=revenue_risk,
             scope_impact=scope_impact
         )
+        time.sleep(0.6)
         if status_callback:
             status_callback(5, "Business-impact assessment", "completed", f"Impact Score: {round(final_score, 1)} ({calculated_severity.upper()})", f"{round(time.time() - step5_time, 1)}s")
 
@@ -178,11 +182,13 @@ class WorkflowOrchestrator:
 
         db.commit()
         latency = time.time() - start_time
+        time.sleep(0.6)
 
         if status_callback:
             status_callback(6, "Recommendation generation", "completed", f"Generated {len(result_data.recommended_actions)} actionable recommendations.", f"{round(time.time() - step6_time, 1)}s")
 
         # Step 7: Final Report Preparation
+        time.sleep(0.8)
         if status_callback:
             status_callback(7, "Final report preparation", "completed", "Report ready. Redirecting to Results Dashboard...", f"{round(latency, 1)}s")
 
