@@ -5,6 +5,9 @@ import re
 from typing import Dict, Any, Type, Optional
 from pydantic import BaseModel
 import google.generativeai as genai
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
