@@ -31,3 +31,9 @@ __pycache__/
 *.db
 .pytest_cache/
 
+# Environment / API Keys
+.env
+.env.*
+*.env
+
+
