@@ -41,9 +41,9 @@ class GeminiOrchestratorSchema(BaseModel):
 
 class DataAnalysisAgent:
     """Calculates throughput, cycle time, backlog, and SLA statistics using deterministic engine."""
-    def run(self, db: Session, team: Optional[str] = None) -> Dict[str, Any]:
-        logger.info("Executing Data Analysis Agent...")
-        metrics = OperationsAnalytics.calculate_metrics(db, team)
+    def run(self, db: Session, team: Optional[str] = None, batch_id: Optional[str] = None) -> Dict[str, Any]:
+        logger.info(f"Executing Data Analysis Agent (batch_id={batch_id})...")
+        metrics = OperationsAnalytics.calculate_metrics(db, team=team, batch_id=batch_id)
         return metrics
 
 class BottleneckDetectionAgent:

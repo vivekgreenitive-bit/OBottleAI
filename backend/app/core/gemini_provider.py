@@ -59,6 +59,48 @@ class GeminiProvider:
                 logger.error(f"Gemini API execution failed: {e}. Using mock fallback.")
         
         return self._generate_mock_data(prompt, schema)
+        
+    def map_csv_headers(self, headers: List[str]) -> Dict[str, str]:
+        """
+        Uses Gemini LLM to map arbitrary Excel/CSV column headers to standardized OperationalRecord fields.
+        """
+        if not self.enabled:
+            return {}
+        
+        prompt = (
+            f"You are an Expert Data Engineer. Map these arbitrary CSV/Excel column headers to standard schema fields.\n"
+            f"Headers in uploaded file: {headers}\n\n"
+            f"Target standard fields:\n"
+            f"- entity_id (ticket id, task id, key, incident number)\n"
+            f"- task_name (summary, title, task name, subject, issue description)\n"
+            f"- owner (assignee, owner, engineer, person assigned)\n"
+            f"- team (department, group, functional area)\n"
+            f"- project (system, application, module, project name)\n"
+            f"- status (state, ticket status, progress)\n"
+            f"- priority (severity, impact level, urgency)\n"
+            f"- created_date (created, date opened, start date)\n"
+            f"- due_date (deadline, target completion date, due)\n"
+            f"- completed_date (resolved date, end date, finished)\n"
+            f"- estimated_effort (estimated hours, story points, estimate)\n"
+            f"- actual_effort (actual hours, time spent)\n"
+            f"- blocked_duration (days open, duration blocked, downtime, delay)\n"
+            f"- customer (client, customer name)\n\n"
+            f"Output ONLY a valid JSON object mapping target_field_name -> exact_header_from_file."
+        )
+
+        try:
+            model = genai.GenerativeModel(
+                model_name=self.model_name,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            response = model.generate_content(prompt)
+            cleaned = self._clean_json_text(response.text)
+            mapping = json.loads(cleaned)
+            logger.info(f"LLM Column Mapping Result: {mapping}")
+            return mapping
+        except Exception as e:
+            logger.error(f"LLM header mapping failed: {e}")
+            return {}
 
     def _clean_json_text(self, text: str) -> str:
         """Cleans markdown backticks from JSON string if any."""

@@ -33,6 +33,10 @@ def load_sample(scenario: str = Query(...), db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+from app.core.gemini_provider import GeminiProvider
+
+gemini_provider = GeminiProvider()
+
 @app.post("/api/v1/ingestions/upload")
 async def upload_file(file: UploadFile = File(...), source: str = Form("CSV_Upload"), db: Session = Depends(get_db)):
     if not file.filename.endswith('.csv'):
@@ -41,19 +45,28 @@ async def upload_file(file: UploadFile = File(...), source: str = Form("CSV_Uplo
     contents = await file.read()
     decoded = contents.decode('utf-8')
     reader = csv.DictReader(io.StringIO(decoded))
+    headers = reader.fieldnames or []
+    
+    # Call Gemini LLM to map arbitrary column headers dynamically
+    llm_map = gemini_provider.map_csv_headers(headers)
     
     records_count = 0
     now = datetime.utcnow()
-    # Generate unique batch ID using filename and timestamp
     timestamp_str = now.strftime("%Y%m%d-%H%M%S")
     clean_filename = re.sub(r'[^a-zA-Z0-9._-]', '_', file.filename)
     batch_id = f"BATCH-{timestamp_str}-{clean_filename}"
     
     try:
-        # Helper to look up key dynamically (case-insensitive, ignoring underscores/spaces/hyphens)
-        def find_field(row: dict, keys: list, default=None):
+        def find_field(row: dict, target_name: str, fallback_keys: list, default=None):
+            # 1. First check if Gemini LLM provided a direct header mapping
+            if target_name in llm_map:
+                mapped_header = llm_map[target_name]
+                if mapped_header in row and row[mapped_header] is not None and str(row[mapped_header]).strip() != "":
+                    return row[mapped_header]
+            
+            # 2. Fall back to heuristic dynamic matcher
             normalized_row = {str(k).lower().replace(" ", "").replace("_", "").replace("-", ""): v for k, v in row.items()}
-            for k in keys:
+            for k in fallback_keys:
                 norm_k = k.lower().replace(" ", "").replace("_", "").replace("-", "")
                 if norm_k in normalized_row:
                     val = normalized_row[norm_k]
@@ -85,29 +98,30 @@ async def upload_file(file: UploadFile = File(...), source: str = Form("CSV_Uplo
                 except ValueError:
                     return 0.0
             
-            raw_owner = find_field(row, ["owner", "assignee"], "Unassigned")
+            raw_owner = find_field(row, "owner", ["owner", "assignee"], "Unassigned")
             redacted_owner = re.sub(r'[\w\.-]+@[\w\.-]+', '[REDACTED_EMAIL]', str(raw_owner))
             
             record = OperationalRecord(
                 batch_id=batch_id,
                 source=source,
-                entity_type=find_field(row, ["entity_type", "type"], "task"),
-                entity_id=find_field(row, ["entity_id", "id", "issue_key", "ticket_id", "key"], f"TASK-{int(time.time())}-{records_count}"),
-                project=find_field(row, ["project", "project_name"], "Default"),
-                task_name=find_field(row, ["task_name", "summary", "title", "name", "subject"], "Ingested Task"),
+                entity_type=find_field(row, "entity_type", ["entity_type", "type"], "task"),
+                entity_id=find_field(row, "entity_id", ["entity_id", "id", "issue_key", "ticket_id", "key"], f"TASK-{int(time.time())}-{records_count}"),
+                project=find_field(row, "project", ["project", "project_name", "module", "system"], "Default"),
+                task_name=find_field(row, "task_name", ["task_name", "summary", "title", "name", "subject", "description"], "Ingested Task"),
                 owner=redacted_owner,
-                team=find_field(row, ["team", "group", "department"], "Unassigned"),
-                status=find_field(row, ["status", "state"], "To Do"),
-                priority=find_field(row, ["priority", "severity"], "medium"),
-                created_date=parse_date(find_field(row, ["created_date", "created", "created_at"])) or now,
-                due_date=parse_date(find_field(row, ["due_date", "due", "due_at", "deadline"])),
-                completed_date=parse_date(find_field(row, ["completed_date", "completed", "completed_at", "resolved", "resolved_at"])),
-                dependencies=find_field(row, ["dependencies", "depends_on", "dependency"]),
-                estimated_effort=parse_float(find_field(row, ["estimated_effort", "estimated", "effort", "story_points", "estimate", "estimated_hours"])),
-                actual_effort=parse_float(find_field(row, ["actual_effort", "actual", "time_spent", "actual_hours"])),
-                blocked_duration=parse_float(find_field(row, ["blocked_duration", "blocked", "blocked_time", "blocked_days", "days_open"])),
-                revenue_impact=parse_float(find_field(row, ["revenue_impact", "revenue"])),
-                cost_impact=parse_float(find_field(row, ["cost_impact", "cost"]))
+                team=find_field(row, "team", ["team", "group", "department"], "Unassigned"),
+                status=find_field(row, "status", ["status", "state"], "To Do"),
+                priority=find_field(row, "priority", ["priority", "severity"], "medium"),
+                created_date=parse_date(find_field(row, "created_date", ["created_date", "created", "created_at"])) or now,
+                due_date=parse_date(find_field(row, "due_date", ["due_date", "due", "due_at", "deadline"])),
+                completed_date=parse_date(find_field(row, "completed_date", ["completed_date", "completed", "completed_at", "resolved", "resolved_at"])),
+                dependencies=find_field(row, "dependencies", ["dependencies", "depends_on", "dependency", "blocker"]),
+                estimated_effort=parse_float(find_field(row, "estimated_effort", ["estimated_effort", "estimated", "effort", "story_points", "estimate", "estimated_hours"])),
+                actual_effort=parse_float(find_field(row, "actual_effort", ["actual_effort", "actual", "time_spent", "actual_hours"])),
+                blocked_duration=parse_float(find_field(row, "blocked_duration", ["blocked_duration", "blocked", "blocked_time", "blocked_days", "days_open"])),
+                customer=find_field(row, "customer", ["customer", "client", "company"]),
+                revenue_impact=parse_float(find_field(row, "revenue_impact", ["revenue_impact", "revenue"])),
+                cost_impact=parse_float(find_field(row, "cost_impact", ["cost_impact", "cost"]))
             )
             db.add(record)
             records_count += 1
