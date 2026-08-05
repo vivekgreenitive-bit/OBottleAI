@@ -50,47 +50,53 @@ def ready():
 # Dashboard stats calculated directly via shared DB volume
 @app.get("/api/v1/dashboard", response_model=DashboardStats)
 def get_dashboard_data(batch_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
-    metrics = OperationsAnalytics.calculate_metrics(db, batch_id=batch_id)
-    
-    health_score = 100.0
-    health_score -= metrics["overdue_count"] * 5
-    health_score -= metrics["blocked_count"] * 10
-    health_score -= metrics["sla_violations"] * 15
-    health_score = max(min(health_score, 100.0), 0.0)
+    try:
+        metrics = OperationsAnalytics.calculate_metrics(db, batch_id=batch_id)
+        
+        health_score = 100.0
+        health_score -= metrics["overdue_count"] * 5
+        health_score -= metrics["blocked_count"] * 10
+        health_score -= metrics["sla_violations"] * 15
+        health_score = max(min(health_score, 100.0), 0.0)
 
-    b_query = db.query(Bottleneck).filter(Bottleneck.status == "Active")
-    if batch_id:
-        b_query = b_query.filter(Bottleneck.batch_id == batch_id)
-    active_bottlenecks = b_query.all()
-    
-    severities = {"critical": 0, "high": 0, "medium": 0, "low": 0}
-    for b in active_bottlenecks:
-        severities[b.severity] = severities.get(b.severity, 0) + 1
+        b_query = db.query(Bottleneck).filter(Bottleneck.status == "Active")
+        if batch_id:
+            b_query = b_query.filter(Bottleneck.batch_id == batch_id)
+        active_bottlenecks = b_query.all()
+        
+        severities = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+        for b in active_bottlenecks:
+            severities[b.severity] = severities.get(b.severity, 0) + 1
 
-    r_query = db.query(OperationalRecord)
-    if batch_id:
-        r_query = r_query.filter(OperationalRecord.batch_id == batch_id)
-    records = r_query.all()
-    
-    sources = {}
-    for r in records:
-        sources[r.source] = sources.get(r.source, 0) + 1
+        r_query = db.query(OperationalRecord)
+        if batch_id:
+            r_query = r_query.filter(OperationalRecord.batch_id == batch_id)
+        records = r_query.all()
+        
+        sources = {}
+        for r in records:
+            sources[r.source] = sources.get(r.source, 0) + 1
 
-    total_cost = sum([b.estimated_cost_impact for b in active_bottlenecks])
-    total_delay = sum([b.estimated_delay_days for b in active_bottlenecks])
+        total_cost = sum([b.estimated_cost_impact for b in active_bottlenecks if b.estimated_cost_impact])
+        total_delay = sum([b.estimated_delay_days for b in active_bottlenecks if b.estimated_delay_days])
+        affected_count = sum([len(b.summary.split(",")) for b in active_bottlenecks if b.summary])
 
-    return DashboardStats(
-        operational_health_score=health_score,
-        active_bottlenecks_count=len(active_bottlenecks),
-        critical_bottlenecks_count=severities["critical"],
-        predicted_sla_breaches=metrics["sla_violations"],
-        affected_customers_count=sum([len(b.summary.split(",")) for b in active_bottlenecks]),
-        estimated_delay_days=total_delay,
-        estimated_cost_impact=total_cost,
-        trend_summary="SLA breach risks elevated due to QA backlogs." if severities["critical"] > 0 else "All pipelines active.",
-        severity_distribution=severities,
-        source_distribution=sources
-    )
+        return DashboardStats(
+            operational_health_score=health_score,
+            active_bottlenecks_count=len(active_bottlenecks),
+            critical_bottlenecks_count=severities["critical"],
+            predicted_sla_breaches=metrics["sla_violations"],
+            affected_customers_count=affected_count,
+            estimated_delay_days=total_delay,
+            estimated_cost_impact=total_cost,
+            trend_summary="SLA breach risks elevated due to QA backlogs." if severities["critical"] > 0 else "All pipelines active.",
+            severity_distribution=severities,
+            source_distribution=sources
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Dynamic Proxy Client
 client = httpx.AsyncClient()

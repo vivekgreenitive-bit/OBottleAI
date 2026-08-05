@@ -24,6 +24,47 @@ app.add_middleware(
 
 orchestrator = WorkflowOrchestrator()
 
+import json
+import asyncio
+from fastapi.responses import StreamingResponse
+
+@app.get("/api/v1/analysis/stream")
+async def stream_analysis(scenario_type: Optional[str] = Query(None), batch_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
+    """Streams real-time agent execution progress to the frontend EventSource listener."""
+    async def event_generator():
+        queue = asyncio.Queue()
+
+        def status_callback(step_index: int, step_name: str, status: str, log: str, duration: str):
+            payload = {
+                "step_index": step_index,
+                "step_name": step_name,
+                "status": status,
+                "log": log,
+                "duration": duration
+            }
+            queue.put_nowait(payload)
+
+        # Run orchestrator in a separate thread to prevent blocking event loop
+        loop = asyncio.get_event_loop()
+        task = loop.run_in_executor(
+            None, 
+            orchestrator.run_diagnostics, 
+            db, 
+            scenario_type, 
+            batch_id, 
+            status_callback
+        )
+
+        while not task.done() or not queue.empty():
+            while not queue.empty():
+                item = await queue.get()
+                yield f"data: {json.dumps(item)}\n\n"
+            await asyncio.sleep(0.1)
+
+        yield "data: {\"event\": \"done\"}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
 @app.post("/api/v1/analysis/run")
 def run_analysis(scenario_type: Optional[str] = Query(None), batch_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
     try:

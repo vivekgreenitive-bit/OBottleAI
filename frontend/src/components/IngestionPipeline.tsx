@@ -97,45 +97,70 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
     setWizardStep(3); // Go to progress screen
     setRunProgress('running');
 
-    // Reset steps
-    const steps = progressSteps.map(s => ({ ...s, status: 'pending', duration: '' }));
-    setProgressSteps(steps);
+    // Reset progress steps
+    const initialSteps = [
+      { name: 'Data validation', status: 'pending', duration: '', log: '' },
+      { name: 'Data normalization & redaction', status: 'pending', duration: '', log: '' },
+      { name: 'Operational metrics analysis', status: 'pending', duration: '', log: '' },
+      { name: 'Bottleneck detection & prediction', status: 'pending', duration: '', log: '' },
+      { name: 'Root-cause analysis (Gemini Pro)', status: 'pending', duration: '', log: '' },
+      { name: 'Business-impact assessment', status: 'pending', duration: '', log: '' },
+      { name: 'Recommendation generation', status: 'pending', duration: '', log: '' },
+      { name: 'Final report preparation', status: 'pending', duration: '', log: '' }
+    ];
+    setProgressSteps(initialSteps);
 
-    // Fire the real backend analysis call in parallel with the UI animation
+    const targetBatch = activeBatchId || '';
     const scenarioType = csvFile ? '' : selectedSource;
-    const backendPromise = runDiagnostics(scenarioType);
+    const params = new URLSearchParams();
+    if (scenarioType) params.append('scenario_type', scenarioType);
+    if (targetBatch) params.append('batch_id', targetBatch);
+    const streamUrl = `http://localhost:8080/api/v1/analysis/stream?${params.toString()}`;
 
-    // Run UI progress animation in parallel with actual backend work
-    const animSteps = [...steps];
-    for (let i = 0; i < animSteps.length; i++) {
-      animSteps[i].status = 'running';
-      setProgressSteps([...animSteps]);
-      
-      const startTime = performance.now();
-      const animDelay = 400 + Math.random() * 800;
-      await new Promise(r => setTimeout(r, animDelay));
-      
-      const durationSeconds = ((performance.now() - startTime) / 1000).toFixed(1);
-      animSteps[i].status = 'completed';
-      animSteps[i].duration = `${durationSeconds}s`;
-      setProgressSteps([...animSteps]);
-    }
+    const eventSource = new EventSource(streamUrl);
 
-    // Wait for backend to finish (it may already be done)
-    try {
-      await backendPromise;
-      setRunProgress('completed');
-      
-      // Auto redirect to Results Page
-      if (setActiveTab) {
-        setTimeout(() => {
-          setActiveTab('dashboard');
-        }, 800);
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.event === 'done') {
+          eventSource.close();
+          setRunProgress('completed');
+          fetchDashboard(targetBatch);
+          if (setActiveTab) {
+            setTimeout(() => {
+              setActiveTab('dashboard');
+            }, 1000);
+          }
+          return;
+        }
+
+        const idx = data.step_index;
+        if (idx !== undefined && idx < initialSteps.length) {
+          setProgressSteps(prev => {
+            const copy = [...prev];
+            copy[idx] = {
+              name: data.step_name || copy[idx].name,
+              status: data.status,
+              duration: data.duration,
+              log: data.log
+            };
+            return copy;
+          });
+        }
+      } catch (e) {
+        console.error("Error parsing agent event stream:", e);
       }
-    } catch (err) {
-      console.error(err);
-      setRunProgress('idle');
-    }
+    };
+
+    eventSource.onerror = (err) => {
+      console.error("EventSource stream error:", err);
+      eventSource.close();
+      // Fallback trigger if stream fails
+      runDiagnostics(scenarioType, targetBatch).then(() => {
+        setRunProgress('completed');
+        if (setActiveTab) setActiveTab('dashboard');
+      });
+    };
   };
 
   return (
@@ -340,24 +365,31 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
                 className="glass-panel" 
                 style={{ 
                   padding: '12px 16px', 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                  background: step.status === 'completed' ? 'rgba(16, 185, 129, 0.03)' : 'var(--bg-tertiary)',
-                  border: step.status === 'completed' ? '1px solid var(--color-success)' : '1px solid var(--glass-border)'
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  background: step.status === 'completed' ? 'rgba(16, 185, 129, 0.03)' : step.status === 'running' ? 'rgba(59, 130, 246, 0.05)' : 'var(--bg-tertiary)',
+                  border: step.status === 'completed' ? '1px solid var(--color-success)' : step.status === 'running' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)'
                 }}
               >
-                <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>
-                  {step.status === 'completed' && '✓ '}
-                  {step.name}
-                  {step.status === 'completed' && step.duration && ` (${step.duration})`}
-                </span>
-                <span 
-                  className={`badge ${step.status === 'completed' ? 'badge-low' : step.status === 'running' ? 'badge-medium' : 'badge-high'}`}
-                  style={{ textTransform: 'uppercase', fontSize: '0.75rem' }}
-                >
-                  {step.status}
-                </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>
+                    {step.status === 'completed' && '✓ '}
+                    {step.name}
+                    {step.status === 'completed' && step.duration && ` (${step.duration})`}
+                  </span>
+                  <span 
+                    className={`badge ${step.status === 'completed' ? 'badge-low' : step.status === 'running' ? 'badge-medium' : 'badge-high'}`}
+                    style={{ textTransform: 'uppercase', fontSize: '0.75rem' }}
+                  >
+                    {step.status}
+                  </span>
+                </div>
+                {(step.log || step.status === 'running') && (
+                  <div style={{ fontSize: '0.75rem', color: step.status === 'completed' ? 'var(--color-success)' : 'var(--color-primary)', fontFamily: 'monospace', marginTop: '2px' }}>
+                    ➜ {step.log || 'Agent executing...'}
+                  </div>
+                )}
               </div>
             ))}
           </div>
