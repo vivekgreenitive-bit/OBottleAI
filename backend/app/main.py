@@ -49,8 +49,8 @@ def ready():
 
 # Dashboard stats calculated directly via shared DB volume
 @app.get("/api/v1/dashboard", response_model=DashboardStats)
-def get_dashboard_data(db: Session = Depends(get_db)):
-    metrics = OperationsAnalytics.calculate_metrics(db)
+def get_dashboard_data(batch_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
+    metrics = OperationsAnalytics.calculate_metrics(db, batch_id=batch_id)
     
     health_score = 100.0
     health_score -= metrics["overdue_count"] * 5
@@ -58,12 +58,20 @@ def get_dashboard_data(db: Session = Depends(get_db)):
     health_score -= metrics["sla_violations"] * 15
     health_score = max(min(health_score, 100.0), 0.0)
 
-    active_bottlenecks = db.query(Bottleneck).filter(Bottleneck.status == "Active").all()
+    b_query = db.query(Bottleneck).filter(Bottleneck.status == "Active")
+    if batch_id:
+        b_query = b_query.filter(Bottleneck.batch_id == batch_id)
+    active_bottlenecks = b_query.all()
+    
     severities = {"critical": 0, "high": 0, "medium": 0, "low": 0}
     for b in active_bottlenecks:
         severities[b.severity] = severities.get(b.severity, 0) + 1
 
-    records = db.query(OperationalRecord).all()
+    r_query = db.query(OperationalRecord)
+    if batch_id:
+        r_query = r_query.filter(OperationalRecord.batch_id == batch_id)
+    records = r_query.all()
+    
     sources = {}
     for r in records:
         sources[r.source] = sources.get(r.source, 0) + 1

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSystem } from '../context/SystemState';
 import { ResponsiveContainer, ComposedChart, XAxis, YAxis, Tooltip, Legend, Bar, Line } from 'recharts';
-import { ShieldAlert, Users, DollarSign, Clock, CheckCircle2, ArrowRight, ClipboardList, HelpCircle } from 'lucide-react';
+import { ShieldAlert, Users, DollarSign, Clock, CheckCircle2, ArrowRight, ClipboardList, HelpCircle, Layers } from 'lucide-react';
 
 interface DashboardProps {
   onSelectBottleneck: (id: number) => void;
@@ -9,7 +9,7 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setActiveTab }) => {
-  const { stats, bottlenecks, selectedBottleneck, selectBottleneckById } = useSystem();
+  const { stats, bottlenecks, selectedBottleneck, selectBottleneckById, batches, activeBatchId, setActiveBatchId, fetchDashboard } = useSystem();
 
   // Load first bottleneck details by default if available and none selected
   useEffect(() => {
@@ -17,6 +17,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
       selectBottleneckById(bottlenecks[0].id);
     }
   }, [bottlenecks, selectedBottleneck]);
+
+  const handleBatchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value === 'ALL' ? null : e.target.value;
+    setActiveBatchId(val);
+    fetchDashboard(val);
+  };
 
   if (!stats || (stats.active_bottlenecks_count === 0 && bottlenecks.length === 0)) {
     return (
@@ -42,7 +48,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
 
   return (
     <div>
-      <h1 style={{ marginBottom: '24px', fontSize: '2rem', fontWeight: '700' }}>Operations Results Dashboard</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: '700' }}>Operations Results Dashboard</h1>
+        {batches.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--glass-bg)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+            <Layers size={16} style={{ color: 'var(--color-primary)' }} />
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '500' }}>Log History:</span>
+            <select
+              value={activeBatchId || 'ALL'}
+              onChange={handleBatchChange}
+              style={{
+                background: 'transparent',
+                color: 'var(--text-main)',
+                border: 'none',
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="ALL" style={{ background: '#111827', color: '#fff' }}>All Log Scans Combined</option>
+              {batches.map(b => (
+                <option key={b.batch_id} value={b.batch_id} style={{ background: '#111827', color: '#fff' }}>
+                  {b.batch_id.replace(/^BATCH-\d{8}-\d{6}-/, '')} ({b.record_count} rows)
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
 
       {/* Health metrics grid */}
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>

@@ -29,6 +29,7 @@ class OperationalRecordCreate(BaseModel):
 
 class OperationalRecordResponse(OperationalRecordCreate):
     id: int
+    batch_id: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -65,6 +66,7 @@ class RootCauseHypothesisResponse(BaseModel):
 
 class BottleneckResponse(BaseModel):
     id: int
+    batch_id: Optional[str] = None
     title: str
     summary: str
     process: str

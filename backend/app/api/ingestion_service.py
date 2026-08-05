@@ -44,12 +44,12 @@ async def upload_file(file: UploadFile = File(...), source: str = Form("CSV_Uplo
     
     records_count = 0
     now = datetime.utcnow()
+    # Generate unique batch ID using filename and timestamp
+    timestamp_str = now.strftime("%Y%m%d-%H%M%S")
+    clean_filename = re.sub(r'[^a-zA-Z0-9._-]', '_', file.filename)
+    batch_id = f"BATCH-{timestamp_str}-{clean_filename}"
     
     try:
-        # Clear existing operational records first to ensure we don't accumulate old uploads
-        db.query(OperationalRecord).delete()
-        db.commit()
-
         # Helper to look up key dynamically (case-insensitive, ignoring underscores/spaces/hyphens)
         def find_field(row: dict, keys: list, default=None):
             normalized_row = {str(k).lower().replace(" ", "").replace("_", "").replace("-", ""): v for k, v in row.items()}
@@ -89,6 +89,7 @@ async def upload_file(file: UploadFile = File(...), source: str = Form("CSV_Uplo
             redacted_owner = re.sub(r'[\w\.-]+@[\w\.-]+', '[REDACTED_EMAIL]', str(raw_owner))
             
             record = OperationalRecord(
+                batch_id=batch_id,
                 source=source,
                 entity_type=find_field(row, ["entity_type", "type"], "task"),
                 entity_id=find_field(row, ["entity_id", "id", "issue_key", "ticket_id", "key"], f"TASK-{int(time.time())}-{records_count}"),
@@ -112,14 +113,33 @@ async def upload_file(file: UploadFile = File(...), source: str = Form("CSV_Uplo
             records_count += 1
             
         db.commit()
-        return {"status": "success", "message": f"Successfully ingested {records_count} operational records."}
+        return {"status": "success", "batch_id": batch_id, "message": f"Successfully ingested {records_count} operational records."}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Ingestion failed: {str(e)}")
 
+@app.get("/api/v1/ingestions/batches")
+def get_batches(db: Session = Depends(get_db)):
+    records = db.query(OperationalRecord.batch_id, OperationalRecord.source, OperationalRecord.created_date).all()
+    batches_map = {}
+    for r in records:
+        b_id = r.batch_id or "default"
+        if b_id not in batches_map:
+            batches_map[b_id] = {
+                "batch_id": b_id,
+                "source": r.source,
+                "record_count": 0,
+                "created_date": r.created_date.isoformat() if r.created_date else None
+            }
+        batches_map[b_id]["record_count"] += 1
+    return list(batches_map.values())
+
 @app.get("/api/v1/ingestions", response_model=list[OperationalRecordResponse])
-def get_ingested_records(db: Session = Depends(get_db)):
-    return db.query(OperationalRecord).all()
+def get_ingested_records(batch_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
+    query = db.query(OperationalRecord)
+    if batch_id:
+        query = query.filter(OperationalRecord.batch_id == batch_id)
+    return query.all()
 
 if __name__ == "__main__":
     import uvicorn

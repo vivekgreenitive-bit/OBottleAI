@@ -25,16 +25,19 @@ app.add_middleware(
 orchestrator = WorkflowOrchestrator()
 
 @app.post("/api/v1/analysis/run")
-def run_analysis(scenario_type: Optional[str] = Query(None), db: Session = Depends(get_db)):
+def run_analysis(scenario_type: Optional[str] = Query(None), batch_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
     try:
-        results = orchestrator.run_diagnostics(db, scenario_type)
+        results = orchestrator.run_diagnostics(db, scenario_type=scenario_type, batch_id=batch_id)
         return {"status": "success", "message": f"Diagnostics completed. Generated {len(results)} bottlenecks."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Diagnostic runner failed: {str(e)}")
 
 @app.get("/api/v1/bottlenecks", response_model=List[BottleneckResponse])
-def get_bottlenecks(db: Session = Depends(get_db)):
-    return db.query(Bottleneck).all()
+def get_bottlenecks(batch_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
+    query = db.query(Bottleneck)
+    if batch_id:
+        query = query.filter(Bottleneck.batch_id == batch_id)
+    return query.all()
 
 @app.get("/api/v1/bottlenecks/{id}", response_model=BottleneckResponse)
 def get_bottleneck(id: int, db: Session = Depends(get_db)):

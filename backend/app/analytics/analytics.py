@@ -1,17 +1,19 @@
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from app.models.models import OperationalRecord
 
 class OperationsAnalytics:
     @staticmethod
-    def calculate_metrics(db: Session, team: Optional[str] = None) -> Dict[str, Any]:
+    def calculate_metrics(db: Session, team: Optional[str] = None, batch_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Calculates cycle times, queue sizes, overdue indicators, and workload distributions.
         """
         query = db.query(OperationalRecord)
         if team:
             query = query.filter(OperationalRecord.team == team)
+        if batch_id:
+            query = query.filter(OperationalRecord.batch_id == batch_id)
         records = query.all()
 
         if not records:

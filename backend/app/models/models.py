@@ -20,6 +20,7 @@ class DataSource(Base):
 class OperationalRecord(Base):
     __tablename__ = "operational_records"
     id = Column(Integer, primary_key=True, index=True)
+    batch_id = Column(String, index=True, nullable=True)
     source = Column(String, index=True)  # Jira, GitHub, support_tickets, kpi
     entity_type = Column(String)  # task, ticket, PR
     entity_id = Column(String, index=True)
@@ -47,6 +48,7 @@ class OperationalRecord(Base):
 class Bottleneck(Base):
     __tablename__ = "bottlenecks"
     id = Column(Integer, primary_key=True, index=True)
+    batch_id = Column(String, index=True, nullable=True)
     title = Column(String, index=True)
     summary = Column(Text)
     process = Column(String, index=True)

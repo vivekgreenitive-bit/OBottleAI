@@ -20,39 +20,22 @@ class WorkflowOrchestrator:
         self.detection_agent = BottleneckDetectionAgent()
         self.impact_agent = BusinessImpactAgent()
 
-    def run_diagnostics(self, db: Session, scenario_type: Optional[str] = None) -> List[Bottleneck]:
+    def run_diagnostics(self, db: Session, scenario_type: Optional[str] = None, batch_id: Optional[str] = None) -> List[Bottleneck]:
         """
-        Runs the full end-to-end diagnostic workflow:
-        1. Clear previous analysis results (bottlenecks, evidence, root causes, recommendations).
-        2. Read operational database records.
-        3. Calculate metrics (Data Analysis Agent).
-        4. Identify risks (Bottleneck Detection Agent).
-        5. Retrieve context (RAG/Knowledge Agent).
-        6. Invoke Gemini Pro reasoning for root cause & recommendations.
-        7. Calculate Business Impact scores.
-        8. Save the bottleneck outputs to DB.
-        9. Record in Audit Log.
+        Runs the full end-to-end diagnostic workflow for the specified batch (or latest uploaded data):
+        1. Read operational database records for batch.
+        2. Calculate metrics (Data Analysis Agent).
+        3. Identify risks (Bottleneck Detection Agent).
+        4. Retrieve context (RAG/Knowledge Agent).
+        5. Invoke Gemini Pro reasoning for root cause & recommendations.
+        6. Calculate Business Impact scores.
+        7. Save the bottleneck outputs to DB tagged with batch_id.
+        8. Record in Audit Log.
         """
         start_time = time.time()
-        logger.info("Starting Multi-Agent Diagnostics workflow...")
+        logger.info(f"Starting Multi-Agent Diagnostics workflow for batch_id: {batch_id}...")
 
-        # Step 0: Clear previous analysis results to prevent duplicates
-        logger.info("Clearing previous analysis results...")
-        try:
-            db.query(ActionExecution).delete()
-            db.query(Approval).delete()
-            db.query(Recommendation).delete()
-            db.query(RootCauseHypothesis).delete()
-            db.query(BottleneckEvidence).delete()
-            db.query(Bottleneck).delete()
-            db.query(AuditLog).delete()
-            db.commit()
-            logger.info("Previous results cleared successfully.")
-        except Exception as e:
-            db.rollback()
-            logger.warning(f"Failed to clear previous results: {e}")
-
-        metrics = self.analysis_agent.run(db)
+        metrics = self.analysis_agent.run(db, batch_id=batch_id)
         
         # Step 3: Identify risks
         risks = self.detection_agent.run(db, metrics)
@@ -65,7 +48,8 @@ class WorkflowOrchestrator:
                 action="run_diagnostics",
                 status="Success",
                 output="No operational bottlenecks identified.",
-                latency=time.time() - start_time
+                latency=time.time() - start_time,
+                db=db
             )
             return []
 
@@ -100,7 +84,6 @@ class WorkflowOrchestrator:
         latency = time.time() - start_time
 
         # Calculate final business impact score using formula
-        # Let's map severity or risk weights to numbers out of 100 for the formula
         cust_impact = 90.0 if result_data.severity == "critical" else (70.0 if result_data.severity == "high" else 40.0)
         sla_risk = 95.0 if result_data.sla_risk == "critical" else (75.0 if result_data.sla_risk == "high" else 45.0)
         delay_risk = result_data.estimated_delay_days * 15.0 # e.g. 5 days = 75
@@ -117,8 +100,9 @@ class WorkflowOrchestrator:
             scope_impact=scope_impact
         )
 
-        # Save to database
+        # Save to database with batch_id
         db_bottleneck = Bottleneck(
+            batch_id=batch_id,
             title=result_data.bottleneck_title,
             summary=result_data.summary,
             process=result_data.process,

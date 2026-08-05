@@ -40,7 +40,7 @@ export interface BottleneckDetail {
   detected_time: string;
   evidence: { id: number; details: string }[];
   root_causes: { id: number; hypothesis: string; confidence: number }[];
-  recommendations: { id: number; action: string; owner: string; deadline: string; status: string; expected_outcome: string; approval_required: boolean }[];
+  recommendations: { id: number; action: string; owner: string; deadline: string; status: string; expected_outcome: string; approval_required: boolean; expected_risk_reduction?: number }[];
 }
 
 export interface AuditLog {
@@ -70,6 +70,14 @@ export interface UploadResult {
   status: string;
   message: string;
   records_count?: number;
+  batch_id?: string;
+}
+
+export interface BatchItem {
+  batch_id: string;
+  source: string;
+  record_count: number;
+  created_date?: string;
 }
 
 export interface SystemContextProps {
@@ -83,11 +91,15 @@ export interface SystemContextProps {
   diagnosticSteps: { name: string; status: 'idle' | 'running' | 'completed'; log?: string }[];
   activeRole: string;
   config: SystemConfig | null;
+  batches: BatchItem[];
+  activeBatchId: string | null;
+  setActiveBatchId: (batchId: string | null) => void;
   setActiveRole: (role: string) => void;
-  fetchDashboard: () => Promise<void>;
+  fetchDashboard: (batchId?: string | null) => Promise<void>;
+  fetchBatches: () => Promise<void>;
   uploadCSV: (file: File) => Promise<UploadResult>;
   loadScenario: (scenario: string) => Promise<void>;
-  runDiagnostics: (scenarioType?: string) => Promise<void>;
+  runDiagnostics: (scenarioType?: string, batchId?: string | null) => Promise<void>;
   approveRecommendation: (id: number, approver: string, comment?: string) => Promise<void>;
   rejectRecommendation: (id: number, approver: string, comment?: string) => Promise<void>;
   selectBottleneckById: (id: number) => Promise<void>;
@@ -105,28 +117,44 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedBottleneck, setSelectedBottleneck] = useState<BottleneckDetail | null>(null);
-  const [activeRole, setActiveRole] = useState<string>('Approver'); // Default to Approver for easy testing
+  const [activeRole, setActiveRole] = useState<string>('Approver');
   const [config, setConfig] = useState<SystemConfig | null>(null);
+  const [batches, setBatches] = useState<BatchItem[]>([]);
+  const [activeBatchId, setActiveBatchId] = useState<string | null>(null);
   
   // Simulation Steps
   const [diagnosticStatus, setDiagnosticStatus] = useState<'idle' | 'running' | 'completed'>('idle');
   const [diagnosticSteps, setDiagnosticSteps] = useState<SystemContextProps['diagnosticSteps']>([
     { name: 'Data Ingestion Service', status: 'idle' },
     { name: 'PII Normalization & Redaction Agent', status: 'idle' },
-    { name: 'Deterministic Analytics Engine', status: 'idle' },
-    { name: 'Multi-Agent Orchestrator (LangGraph Router)', status: 'idle' },
-    { name: 'Gemini Root Cause & Risk Prediction Agent', status: 'idle' },
-    { name: 'Business Impact Assessment Agent', status: 'idle' },
+    { name: 'Data Analysis Agent (Throughput/Cycle Time)', status: 'idle' },
+    { name: 'Bottleneck Detection Agent (Static Rules)', status: 'idle' },
+    { name: 'RAG Knowledge Agent (SOPs/SLAs Context)', status: 'idle' },
+    { name: 'Gemini Pro Reasoning Agent (Root Cause)', status: 'idle' },
+    { name: 'Business Impact Agent (Formula Weighting)', status: 'idle' },
     { name: 'Recommendation Generation Agent', status: 'idle' }
   ]);
 
-  const fetchDashboard = async () => {
+  const fetchBatches = async () => {
     try {
-      const statsRes = await fetch(`${API_BASE}/dashboard`);
+      const res = await fetch(`${API_BASE}/ingestions/batches`);
+      const data = await res.json();
+      setBatches(data);
+    } catch (err) {
+      console.error("Error fetching batches:", err);
+    }
+  };
+
+  const fetchDashboard = async (overrideBatchId?: string | null) => {
+    try {
+      const targetBatch = overrideBatchId !== undefined ? overrideBatchId : activeBatchId;
+      const bQuery = targetBatch ? `?batch_id=${encodeURIComponent(targetBatch)}` : '';
+
+      const statsRes = await fetch(`${API_BASE}/dashboard${bQuery}`);
       const statsData = await statsRes.json();
       setStats(statsData);
 
-      const bRes = await fetch(`${API_BASE}/bottlenecks`);
+      const bRes = await fetch(`${API_BASE}/bottlenecks${bQuery}`);
       const bData = await bRes.json();
       setBottlenecks(bData);
 
@@ -137,6 +165,8 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const logRes = await fetch(`${API_BASE}/audit-logs`);
       const logData = await logRes.json();
       setAuditLogs(logData);
+
+      await fetchBatches();
     } catch (err) {
       console.error("Error loading system metrics: ", err);
     }
@@ -148,7 +178,7 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const data = await res.json();
       setConfig(data);
     } catch (err) {
-      console.error("Error loading configs: ", err);
+      console.error(err);
     }
   };
 
@@ -201,6 +231,9 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         body: formData
       });
       const data = await res.json();
+      if (data.batch_id) {
+        setActiveBatchId(data.batch_id);
+      }
       return data;
     } catch (err) {
       console.error('CSV upload failed:', err);
@@ -210,14 +243,18 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  const runDiagnostics = async (scenarioType?: string) => {
+  const runDiagnostics = async (scenarioType?: string, overrideBatchId?: string | null) => {
     setDiagnosticStatus('running');
 
     try {
-      // Fire the actual backend analysis call immediately
-      const q = scenarioType ? `?scenario_type=${scenarioType}` : '';
+      const targetBatch = overrideBatchId !== undefined ? overrideBatchId : activeBatchId;
+      const params = new URLSearchParams();
+      if (scenarioType) params.append('scenario_type', scenarioType);
+      if (targetBatch) params.append('batch_id', targetBatch);
+      const q = params.toString() ? `?${params.toString()}` : '';
+
       await fetch(`${API_BASE}/analysis/run${q}`, { method: 'POST' });
-      await fetchDashboard();
+      await fetchDashboard(targetBatch);
       setDiagnosticStatus('completed');
     } catch (err) {
       console.error(err);
@@ -278,8 +315,12 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       diagnosticSteps,
       activeRole,
       config,
+      batches,
+      activeBatchId,
+      setActiveBatchId,
       setActiveRole,
       fetchDashboard,
+      fetchBatches,
       uploadCSV,
       loadScenario,
       runDiagnostics,
