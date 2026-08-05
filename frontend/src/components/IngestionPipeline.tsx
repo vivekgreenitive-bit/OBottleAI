@@ -115,7 +115,8 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
     const params = new URLSearchParams();
     if (scenarioType) params.append('scenario_type', scenarioType);
     if (targetBatch) params.append('batch_id', targetBatch);
-    const streamUrl = `http://localhost:8080/api/v1/analysis/stream?${params.toString()}`;
+    const apiHost = window.location.hostname || 'localhost';
+    const streamUrl = `http://${apiHost}:8080/api/v1/analysis/stream?${params.toString()}`;
 
     const eventSource = new EventSource(streamUrl);
 
