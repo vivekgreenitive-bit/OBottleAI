@@ -13,7 +13,7 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
   activeScenario, 
   setActiveScenario 
 }) => {
-  const { loadScenario, loading, runDiagnostics, fetchDashboard, uploadCSV } = useSystem();
+  const { loadScenario, loading, runDiagnostics, fetchDashboard, uploadCSV, activeBatchId } = useSystem();
   
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [selectedSource, setSelectedSource] = useState<string>('');
