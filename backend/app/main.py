@@ -1,5 +1,6 @@
 import os
 import httpx
+from typing import Optional, List
 from datetime import datetime
 from fastapi import FastAPI, Depends, HTTPException, Request, Query
 from fastapi.responses import StreamingResponse
@@ -49,7 +50,7 @@ def ready():
 
 # Dashboard stats calculated directly via shared DB volume
 @app.get("/api/v1/dashboard", response_model=DashboardStats)
-def get_dashboard_data(batch_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
+def get_dashboard_data(batch_id: Optional[str] = Query(default=None), db: Session = Depends(get_db)):
     try:
         metrics = OperationsAnalytics.calculate_metrics(db, batch_id=batch_id)
         
@@ -77,16 +78,16 @@ def get_dashboard_data(batch_id: Optional[str] = Query(None), db: Session = Depe
         for r in records:
             sources[r.source] = sources.get(r.source, 0) + 1
 
-        total_cost = sum([b.estimated_cost_impact for b in active_bottlenecks if b.estimated_cost_impact])
-        total_delay = sum([b.estimated_delay_days for b in active_bottlenecks if b.estimated_delay_days])
+        total_cost = float(sum([b.estimated_cost_impact for b in active_bottlenecks if b.estimated_cost_impact is not None]))
+        total_delay = int(sum([b.estimated_delay_days for b in active_bottlenecks if b.estimated_delay_days is not None]))
         affected_count = sum([len(b.summary.split(",")) for b in active_bottlenecks if b.summary])
 
         return DashboardStats(
-            operational_health_score=health_score,
+            operational_health_score=float(health_score),
             active_bottlenecks_count=len(active_bottlenecks),
-            critical_bottlenecks_count=severities["critical"],
-            predicted_sla_breaches=metrics["sla_violations"],
-            affected_customers_count=affected_count,
+            critical_bottlenecks_count=int(severities["critical"]),
+            predicted_sla_breaches=int(metrics["sla_violations"]),
+            affected_customers_count=int(affected_count),
             estimated_delay_days=total_delay,
             estimated_cost_impact=total_cost,
             trend_summary="SLA breach risks elevated due to QA backlogs." if severities["critical"] > 0 else "All pipelines active.",

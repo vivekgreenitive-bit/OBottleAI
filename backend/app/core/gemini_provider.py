@@ -16,6 +16,8 @@ class GeminiProvider:
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY")
         self.model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-pro")
+        self.ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+        self.ollama_model = os.getenv("OLLAMA_MODEL", "llama3.1")
         self.enabled = False
 
         if self.api_key:
@@ -24,41 +26,68 @@ class GeminiProvider:
                 self.enabled = True
                 logger.info("Gemini Provider configured successfully.")
             except Exception as e:
-                logger.error(f"Error configuring Gemini: {e}. Falling back to mock responses.")
+                logger.error(f"Error configuring Gemini: {e}. Falling back to Ollama / Mock.")
         else:
-            logger.info("No GEMINI_API_KEY set. Operating in MOCK mode.")
+            logger.info("No GEMINI_API_KEY set. Operating in Local Ollama / Mock mode.")
 
     def generate_structured(self, prompt: str, schema: Type[BaseModel], system_instruction: Optional[str] = None) -> BaseModel:
         """
-        Generates content from Gemini conforming to the given Pydantic schema.
-        Falls back to a structured mock response if Gemini is disabled or errors.
+        3-Tier Model Execution:
+        Tier 1: Live Gemini 1.5 Pro API
+        Tier 2: Local Ollama Model (Llama 3.1 / Gemma 2 via http://localhost:11434)
+        Tier 3: Local Deterministic Rule Engine
         """
+        # Tier 1: Gemini API
         if self.enabled:
             try:
-                # Set up system instructions if provided
-                config = {}
-                if system_instruction:
-                    # Using Gemini model config with structured JSON response
-                    config["response_mime_type"] = "application/json"
-                
                 model = genai.GenerativeModel(
                     model_name=self.model_name,
-                    generation_config={"response_mime_type": "application/json"} if self.enabled else None,
+                    generation_config={"response_mime_type": "application/json"},
                     system_instruction=system_instruction
                 )
-                
                 response = model.generate_content(prompt)
                 text = response.text
-                logger.info(f"Gemini raw response: {text}")
+                logger.info(f"Gemini raw response: {text[:100]}...")
                 
-                # Attempt to parse json from response text
                 cleaned_text = self._clean_json_text(text)
                 json_data = json.loads(cleaned_text)
                 return schema.model_validate(json_data)
             except Exception as e:
-                logger.error(f"Gemini API execution failed: {e}. Using mock fallback.")
-        
+                logger.warning(f"Tier 1 (Gemini API) unavailable/blocked: {e}. Falling back to Tier 2 (Local Ollama).")
+
+        # Tier 2: Local Ollama Server
+        ollama_result = self._call_ollama(prompt, schema, system_instruction)
+        if ollama_result:
+            return ollama_result
+
+        # Tier 3: Deterministic Rule Engine
+        logger.info("Tier 2 (Local Ollama) not responding. Executing Tier 3 (Deterministic Engine).")
         return self._generate_mock_data(prompt, schema)
+
+    def _call_ollama(self, prompt: str, schema: Type[BaseModel], system_instruction: Optional[str] = None) -> Optional[BaseModel]:
+        """Queries local Ollama inference server if running."""
+        try:
+            full_prompt = prompt
+            if system_instruction:
+                full_prompt = f"System: {system_instruction}\n\nUser: {prompt}"
+
+            payload = {
+                "model": self.ollama_model,
+                "prompt": full_prompt,
+                "stream": False,
+                "format": "json"
+            }
+
+            resp = httpx.post(f"{self.ollama_url}/api/generate", json=payload, timeout=10.0)
+            if resp.status_code == 200:
+                raw_json = resp.json().get("response", "")
+                cleaned = self._clean_json_text(raw_json)
+                json_data = json.loads(cleaned)
+                logger.info(f"Ollama local model '{self.ollama_model}' generated response successfully.")
+                return schema.model_validate(json_data)
+        except Exception as e:
+            logger.debug(f"Ollama local connection skipped: {e}")
+        return None
         
     def map_csv_headers(self, headers: List[str]) -> Dict[str, str]:
         """
