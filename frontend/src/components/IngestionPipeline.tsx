@@ -161,263 +161,157 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
   };
 
   return (
-    <div>
-      <h1 style={{ marginBottom: '24px', fontSize: '2rem', fontWeight: '700' }}>New Operational Scan</h1>
-
-      {/* Progress Wizard Breadcrumbs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '28px', background: 'var(--bg-tertiary)', padding: '6px', borderRadius: '8px', width: 'fit-content' }}>
-        <button 
-          className={`btn ${wizardStep === 1 ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-          onClick={() => setWizardStep(1)}
-          disabled={runProgress === 'running'}
-        >
-          1. Choose Source
-        </button>
-        <button 
-          className={`btn ${wizardStep === 2 ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-          onClick={() => selectedSource && setWizardStep(2)}
-          disabled={!selectedSource || runProgress === 'running'}
-        >
-          2. Preview & Validate
-        </button>
-        <button 
-          className={`btn ${wizardStep === 3 ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-          disabled={runProgress !== 'running' && runProgress !== 'completed'}
-        >
-          3. Running Analysis
-        </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: '700' }}>Operations Analysis & Diagnostics</h1>
+        {runProgress === 'running' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-primary)', fontWeight: '600', fontSize: '0.9rem' }}>
+            <Activity size={18} className="animate-spin" />
+            <span>Agent Diagnostic Scanning Active...</span>
+          </div>
+        )}
       </div>
 
-      {/* STEP 1: CHOOSE SOURCE */}
-      {wizardStep === 1 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-          {/* Left Scenarios */}
-          <div className="glass-panel" style={{ padding: '24px' }}>
-            <h2 className="card-title" style={{ marginBottom: '16px' }}>Select Backlog Scenario</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '20px' }}>
-              Load predefined logs containing operational blockages:
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button className="btn btn-secondary" style={{ justifyContent: 'flex-start' }} onClick={() => handleSelectScenario('release_delay')}>
-                <span style={{ color: 'var(--color-danger)', fontWeight: '700' }}>Scenario 1:</span> Release Delay (QA capacity constraints)
-              </button>
-              <button className="btn btn-secondary" style={{ justifyContent: 'flex-start' }} onClick={() => handleSelectScenario('support_backlog')}>
-                <span style={{ color: 'var(--color-warning)', fontWeight: '700' }}>Scenario 2:</span> Support Backlog (API session timeout spikes)
-              </button>
-              <button className="btn btn-secondary" style={{ justifyContent: 'flex-start' }} onClick={() => handleSelectScenario('vendor_dependency')}>
-                <span style={{ color: 'var(--color-primary)', fontWeight: '700' }}>Scenario 3:</span> Vendor Delay (Blocked checkouts checkout epics)
-              </button>
-              <button className="btn btn-secondary" style={{ justifyContent: 'flex-start' }} onClick={() => handleSelectScenario('resource_overload')}>
-                <span style={{ color: 'var(--color-success)', fontWeight: '700' }}>Scenario 4:</span> Lead Developer Workload Imbalance
-              </button>
-            </div>
+      {/* TOP UNIFIED ACTION BAR */}
+      <div className="glass-panel" style={{ padding: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '16px', alignItems: 'center' }}>
+          {/* Quick Scenario Selector */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>
+              Select Preloaded Scenario
+            </label>
+            <select
+              value={selectedSource}
+              onChange={(e) => {
+                if (e.target.value) handleSelectScenario(e.target.value);
+              }}
+              disabled={runProgress === 'running'}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: '6px',
+                background: 'var(--bg-tertiary)',
+                color: 'var(--text-main)',
+                border: '1px solid var(--glass-border)',
+                fontWeight: '500',
+                outline: 'none'
+              }}
+            >
+              <option value="">-- Choose Sample Log Scenario --</option>
+              <option value="release_delay">Scenario 1: Release Delay (QA Capacity Constraint)</option>
+              <option value="support_backlog">Scenario 2: Support Backlog (API Session Timeouts)</option>
+              <option value="vendor_dependency">Scenario 3: Vendor Delay (Checkout Epics Blocked)</option>
+              <option value="resource_overload">Scenario 4: Lead Developer Workload Imbalance</option>
+            </select>
           </div>
 
-          {/* Right Uploads */}
-          <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <h2 className="card-title" style={{ marginBottom: '16px' }}>Upload Raw Spreadsheet Logs</h2>
-            <div style={{ border: '2px dashed var(--glass-border)', padding: '32px', borderRadius: '8px', textAlign: 'center', cursor: 'pointer' }}>
-              <input type="file" accept=".csv" id="csv-wizard-file" style={{ display: 'none' }} onChange={handleFileChange} />
-              <label htmlFor="csv-wizard-file" style={{ cursor: 'pointer' }}>
-                <Upload size={36} style={{ color: 'var(--color-primary)', marginBottom: '10px' }} />
-                <p style={{ fontSize: '0.9rem', fontWeight: '600' }}>Upload CSV backlogs file</p>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Accepts standard Jira exports or CSV tables</p>
+          {/* CSV File Upload Dropzone */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>
+              Or Upload Raw CSV Log
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input type="file" accept=".csv" id="csv-single-file" style={{ display: 'none' }} onChange={handleFileChange} disabled={runProgress === 'running'} />
+              <label 
+                htmlFor="csv-single-file" 
+                className="btn btn-secondary" 
+                style={{ flex: 1, padding: '9px 14px', justifyContent: 'center', cursor: runProgress === 'running' ? 'not-allowed' : 'pointer' }}
+              >
+                <Upload size={16} style={{ color: 'var(--color-primary)' }} />
+                <span>{csvFile ? csvFile.name : 'Choose CSV File'}</span>
               </label>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* STEP 2: PREVIEW & VALIDATE */}
-      {wizardStep === 2 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-          {/* Left Preview Details */}
-          <div className="glass-panel" style={{ padding: '24px' }}>
-            <h2 className="card-title" style={{ marginBottom: '20px' }}>Data Validation Preview</h2>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Source Profile Name</span>
-                <span style={{ fontWeight: '600' }}>{selectedSource}{csvFile ? '' : '.csv'}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Synced Backlog Items</span>
-                {uploadStatus === 'uploading' ? (
-                  <span style={{ fontWeight: '600', color: 'var(--color-warning)' }}>Uploading...</span>
-                ) : (
-                  <span style={{ fontWeight: '600', color: 'var(--color-primary)' }}>{recordsCount} rows</span>
-                )}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Detected Schema Fields</span>
-                <span style={{ fontWeight: '600' }}>entity_id, task_name, owner, status, priority</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Required Mapping Status</span>
-                <span style={{ fontWeight: '600', color: 'var(--color-success)' }}>100% Mapped</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Missing Critical Values</span>
-                <span style={{ fontWeight: '600', color: 'var(--color-success)' }}>None</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>PII Sanitization Gate</span>
-                <span style={{ fontWeight: '600', color: 'var(--color-success)' }}>Active (Auto-Redacting Emails)</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Backend Upload Status</span>
-                {uploadStatus === 'uploading' && (
-                  <span style={{ fontWeight: '600', color: 'var(--color-warning)' }}>⏳ Uploading to server...</span>
-                )}
-                {uploadStatus === 'success' && (
-                  <span style={{ fontWeight: '600', color: 'var(--color-success)' }}>✓ Stored in Database</span>
-                )}
-                {uploadStatus === 'error' && (
-                  <span style={{ fontWeight: '600', color: 'var(--color-danger)' }}>✗ Upload Failed</span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Action Confirm */}
-          <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div>
-              {uploadStatus === 'error' ? (
-                <>
-                  <h2 className="card-title" style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <XCircle size={20} style={{ color: 'var(--color-danger)' }} />
-                    <span>Upload Failed</span>
-                  </h2>
-                  <p style={{ color: 'var(--color-danger)', fontSize: '0.85rem', lineHeight: '1.5' }}>
-                    {uploadMessage}
-                  </p>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.5', marginTop: '12px' }}>
-                    Please check that your CSV file has columns: entity_id, task_name, owner, status, priority.
-                  </p>
-                </>
-              ) : uploadStatus === 'uploading' ? (
-                <>
-                  <h2 className="card-title" style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Activity size={20} style={{ color: 'var(--color-warning)' }} />
-                    <span>Processing Upload...</span>
-                  </h2>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.5' }}>
-                    Your file is being uploaded, parsed, and validated by the ingestion service.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h2 className="card-title" style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <CheckCircle size={20} style={{ color: 'var(--color-success)' }} />
-                    <span>Verification Successful</span>
-                  </h2>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.5' }}>
-                    Your data is parsed, normalized, and validated. {recordsCount} records stored in the database. Trigger the AI operation scanner to extract bottlenecks, predicted delay days, and cost implications.
-                  </p>
-                </>
-              )}
-            </div>
-
-            <button 
-              className="btn btn-primary" 
-              style={{ width: '100%', padding: '14px', fontSize: '1rem', justifyContent: 'center', marginTop: '20px' }}
+          {/* Trigger Agent Scan Button */}
+          <div style={{ paddingTop: '20px' }}>
+            <button
+              className="btn btn-primary"
               onClick={startAnalysis}
-              disabled={uploadStatus !== 'success'}
+              disabled={runProgress === 'running' || (uploadStatus !== 'success' && !selectedSource)}
+              style={{ padding: '10px 20px', fontSize: '0.95rem', fontWeight: '600' }}
             >
-              <Play size={18} />
-              <span>Run Bottleneck Analysis</span>
+              <Play size={16} />
+              <span>Run Agent Scan</span>
               <ArrowRight size={16} />
             </button>
           </div>
         </div>
-      )}
 
-      {/* STEP 3: RUNNING & COMPLETED ANALYSIS */}
-      {wizardStep === 3 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          <div className="glass-panel" style={{ padding: '28px', maxWidth: '800px', margin: '0 auto', width: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 className="card-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {runProgress === 'completed' ? (
-                  <>
-                    <CheckCircle size={22} style={{ color: 'var(--color-success)' }} />
-                    <span>Agent Scan Complete — Results Generated Below</span>
-                  </>
-                ) : (
-                  <>
-                    <Activity size={22} className="text-primary animate-spin" style={{ color: 'var(--color-primary)' }} />
-                    <span>Live Backend Agent Execution</span>
-                  </>
-                )}
-              </h2>
+        {uploadMessage && (
+          <div style={{ marginTop: '12px', fontSize: '0.8rem', color: uploadStatus === 'error' ? 'var(--color-danger)' : 'var(--color-success)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {uploadStatus === 'error' ? <AlertTriangle size={14} /> : <CheckCircle size={14} />}
+            <span>{uploadMessage}</span>
+          </div>
+        )}
+      </div>
 
-              {runProgress === 'completed' && (
-                <button 
-                  className="btn btn-secondary" 
-                  onClick={() => setWizardStep(1)}
-                  style={{ fontSize: '0.8rem', padding: '6px 14px' }}
-                >
-                  Upload New Dataset
-                </button>
+      {/* LIVE AGENT EXECUTION PANEL */}
+      {(runProgress === 'running' || runProgress === 'completed') && (
+        <div className="glass-panel" style={{ padding: '20px', border: runProgress === 'running' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {runProgress === 'completed' ? (
+                <>
+                  <CheckCircle size={18} style={{ color: 'var(--color-success)' }} />
+                  <span>Backend Multi-Agent Execution Complete</span>
+                </>
+              ) : (
+                <>
+                  <Activity size={18} className="text-primary animate-spin" style={{ color: 'var(--color-primary)' }} />
+                  <span>Real-Time Backend Multi-Agent Execution</span>
+                </>
               )}
-            </div>
-
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '20px' }}>
-              Real-time Server-Sent Events (SSE) stream receiving live agent status callbacks from FastAPI microservices.
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
-              {progressSteps.map((step, idx) => (
-                <div 
-                  key={idx} 
-                  className="glass-panel" 
-                  style={{ 
-                    padding: '10px 14px', 
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                    background: step.status === 'completed' ? 'rgba(16, 185, 129, 0.03)' : step.status === 'running' ? 'rgba(59, 130, 246, 0.05)' : 'var(--bg-tertiary)',
-                    border: step.status === 'completed' ? '1px solid var(--color-success)' : step.status === 'running' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: '500' }}>
-                      {step.status === 'completed' && '✓ '}
-                      {step.name}
-                      {step.status === 'completed' && step.duration && ` (${step.duration})`}
-                    </span>
-                    <span 
-                      className={`badge ${step.status === 'completed' ? 'badge-low' : step.status === 'running' ? 'badge-medium' : 'badge-high'}`}
-                      style={{ textTransform: 'uppercase', fontSize: '0.7rem' }}
-                    >
-                      {step.status}
-                    </span>
-                  </div>
-                  {(step.log || step.status === 'running') && (
-                    <div style={{ fontSize: '0.72rem', color: step.status === 'completed' ? 'var(--color-success)' : 'var(--color-primary)', fontFamily: 'monospace', marginTop: '2px' }}>
-                      ➜ {step.log || 'Agent executing...'}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            </h3>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>FastAPI EventSource Stream</span>
           </div>
 
-          {/* INLINE DASHBOARD RESULTS ON THE EXACT SAME PAGE */}
-          {runProgress === 'completed' && (
-            <div style={{ borderTop: '1px dashed var(--glass-border)', paddingTop: '28px' }}>
-              <Dashboard 
-                onSelectBottleneck={(id) => {
-                  if (setActiveTab) setActiveTab('approvals');
-                }} 
-              />
-            </div>
-          )}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '8px' }}>
+            {progressSteps.map((step, idx) => (
+              <div 
+                key={idx} 
+                className="glass-panel" 
+                style={{ 
+                  padding: '8px 12px', 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                  background: step.status === 'completed' ? 'rgba(16, 185, 129, 0.03)' : step.status === 'running' ? 'rgba(59, 130, 246, 0.05)' : 'var(--bg-tertiary)',
+                  border: step.status === 'completed' ? '1px solid var(--color-success)' : step.status === 'running' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: '500' }}>
+                    {step.status === 'completed' && '✓ '}
+                    {step.name}
+                    {step.status === 'completed' && step.duration && ` (${step.duration})`}
+                  </span>
+                  <span 
+                    className={`badge ${step.status === 'completed' ? 'badge-low' : step.status === 'running' ? 'badge-medium' : 'badge-high'}`}
+                    style={{ textTransform: 'uppercase', fontSize: '0.65rem' }}
+                  >
+                    {step.status}
+                  </span>
+                </div>
+                {(step.log || step.status === 'running') && (
+                  <div style={{ fontSize: '0.7rem', color: step.status === 'completed' ? 'var(--color-success)' : 'var(--color-primary)', fontFamily: 'monospace' }}>
+                    ➜ {step.log || 'Agent executing...'}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
+
+      {/* DASHBOARD RESULTS - ALWAYS VISIBLE */}
+      <div>
+        <Dashboard 
+          onSelectBottleneck={(id) => {
+            if (setActiveTab) setActiveTab('approvals');
+          }} 
+        />
+      </div>
     </div>
   );
 };
