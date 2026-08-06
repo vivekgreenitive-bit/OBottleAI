@@ -177,12 +177,15 @@ class GeminiProvider:
                 "Backlog metrics and SLA compliance rates calculated across active operational teams."
             ]
 
-        # Determine severity and metrics dynamically from evidence severity
+        # Determine severity and metrics dynamically from evidence severity & dataset size
         is_critical = blocked_count > 2 or any("critical" in e.lower() for e in evidence_lines)
         severity_level = "critical" if is_critical else ("high" if len(evidence_lines) > 1 else "medium")
         impact_score = 85.0 if severity_level == "critical" else (65.0 if severity_level == "high" else 45.0)
-        delay_days = 5 if severity_level == "critical" else (3 if severity_level == "high" else 1)
-        cost_impact = delay_days * 3500.0
+        
+        # Calculate dynamic delay and cost metrics based on blocked task count in dataset
+        base_delay = max(1, blocked_count if blocked_count > 0 else len(evidence_lines))
+        delay_days = min(14, base_delay + (2 if is_critical else 0))
+        cost_impact = float(delay_days * 2500.0 + (blocked_count * 1200.0))
 
         # Construct dynamic analysis output
         dynamic_analysis = {
