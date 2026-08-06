@@ -183,20 +183,26 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
               disabled={runProgress === 'running'}
               style={{
                 width: '100%',
-                padding: '10px 14px',
-                borderRadius: '6px',
-                background: 'var(--bg-tertiary)',
-                color: 'var(--text-main)',
+                padding: '10px 36px 10px 14px',
+                borderRadius: '8px',
+                background: `#111827 url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 12px center`,
+                backgroundSize: '16px',
+                color: '#ffffff',
                 border: '1px solid var(--glass-border)',
-                fontWeight: '500',
-                outline: 'none'
+                fontWeight: '600',
+                fontSize: '0.88rem',
+                outline: 'none',
+                cursor: 'pointer',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                appearance: 'none'
               }}
             >
-              <option value="">-- Choose Sample Log Scenario --</option>
-              <option value="release_delay">Scenario 1: Release Delay (QA Capacity Constraint)</option>
-              <option value="support_backlog">Scenario 2: Support Backlog (API Session Timeouts)</option>
-              <option value="vendor_dependency">Scenario 3: Vendor Delay (Checkout Epics Blocked)</option>
-              <option value="resource_overload">Scenario 4: Lead Developer Workload Imbalance</option>
+              <option value="" style={{ background: '#111827', color: '#9ca3af' }}>-- Choose Sample Log Scenario --</option>
+              <option value="release_delay" style={{ background: '#111827', color: '#ffffff' }}>Scenario 1: Release Delay (QA Capacity Constraint)</option>
+              <option value="support_backlog" style={{ background: '#111827', color: '#ffffff' }}>Scenario 2: Support Backlog (API Session Timeouts)</option>
+              <option value="vendor_dependency" style={{ background: '#111827', color: '#ffffff' }}>Scenario 3: Vendor Delay (Checkout Epics Blocked)</option>
+              <option value="resource_overload" style={{ background: '#111827', color: '#ffffff' }}>Scenario 4: Lead Developer Workload Imbalance</option>
             </select>
           </div>
 
