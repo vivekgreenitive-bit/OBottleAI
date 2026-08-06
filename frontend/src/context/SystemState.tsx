@@ -212,7 +212,6 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setLoading(true);
     try {
       await fetch(`${API_BASE}/ingestions/sample?scenario=${scenario}`, { method: 'POST' });
-      await fetchDashboard();
     } catch (err) {
       console.error(err);
     } finally {

@@ -50,52 +50,25 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
     }
   }, [activeScenario]);
 
-  const handleSelectScenario = async (scenario: string) => {
+  const handleSelectScenario = (scenario: string) => {
     setSelectedSource(scenario);
+    setCsvFile(null);
     if (setActiveScenario) setActiveScenario(scenario);
-    setUploadStatus('uploading');
-    setUploadMessage('Loading scenario data into database...');
-    
-    await loadScenario(scenario);
-    
     setUploadStatus('success');
-    setUploadMessage('Scenario data loaded successfully.');
-    if (scenario === 'release_delay') {
-      setRecordsCount(10);
-    } else {
-      setRecordsCount(8);
-    }
-    setWizardStep(2); // Advance to preview
+    setUploadMessage(`Selected scenario: ${scenario}. Click "Run Agent Scan" to begin.`);
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setCsvFile(file);
       setSelectedSource(file.name);
-      setUploadStatus('uploading');
-      setUploadMessage('Uploading and parsing CSV file...');
-      setWizardStep(2);
-
-      // Actually upload the file to the backend
-      const result = await uploadCSV(file);
-      
-      if (result.status === 'success') {
-        // Extract record count from response message (e.g. "Successfully ingested 15 operational records.")
-        const match = result.message.match(/(\d+)/);
-        const count = match ? parseInt(match[1]) : 0;
-        setRecordsCount(count);
-        setUploadStatus('success');
-        setUploadMessage(result.message);
-      } else {
-        setUploadStatus('error');
-        setUploadMessage(result.message || 'Upload failed. Please check file format.');
-      }
+      setUploadStatus('success');
+      setUploadMessage(`File "${file.name}" staged. Click "Run Agent Scan" to upload and analyze.`);
     }
   };
 
   const startAnalysis = async () => {
-    setWizardStep(3); // Go to progress screen
     setRunProgress('running');
 
     // Reset progress steps
@@ -111,7 +84,32 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
     ];
     setProgressSteps(initialSteps);
 
-    const targetBatch = activeBatchId || '';
+    let targetBatch = activeBatchId || '';
+
+    // Step A: Ingest staged CSV or Scenario FIRST
+    if (csvFile) {
+      setUploadStatus('uploading');
+      setUploadMessage('Uploading and parsing CSV file...');
+      const result = await uploadCSV(csvFile);
+      if (result.status === 'success') {
+        setUploadStatus('success');
+        setUploadMessage(result.message);
+        if (result.batch_id) targetBatch = result.batch_id;
+      } else {
+        setUploadStatus('error');
+        setUploadMessage(result.message || 'Upload failed');
+        setRunProgress('idle');
+        return;
+      }
+    } else if (selectedSource) {
+      setUploadStatus('uploading');
+      setUploadMessage(`Loading sample scenario '${selectedSource}'...`);
+      await loadScenario(selectedSource);
+      setUploadStatus('success');
+      setUploadMessage(`Loaded scenario '${selectedSource}'.`);
+    }
+
+    // Step B: Stream Live Agent Execution
     const scenarioType = csvFile ? '' : selectedSource;
     const params = new URLSearchParams();
     if (scenarioType) params.append('scenario_type', scenarioType);
@@ -152,11 +150,8 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
     eventSource.onerror = (err) => {
       console.error("EventSource stream error:", err);
       eventSource.close();
-      // Fallback trigger if stream fails
-      runDiagnostics(scenarioType, targetBatch).then(() => {
-        setRunProgress('completed');
-        fetchDashboard(targetBatch);
-      });
+      setRunProgress('completed');
+      fetchDashboard(targetBatch);
     };
   };
 
