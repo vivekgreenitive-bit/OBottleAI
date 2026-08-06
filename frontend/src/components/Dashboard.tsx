@@ -58,21 +58,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
               value={activeBatchId || 'ALL'}
               onChange={handleBatchChange}
               style={{
-                background: 'transparent',
+                background: 'var(--bg-secondary)',
                 color: 'var(--text-main)',
-                border: 'none',
-                fontSize: '0.85rem',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '6px',
+                padding: '4px 8px',
+                fontSize: '0.82rem',
                 fontWeight: '600',
                 outline: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                maxWidth: '350px'
               }}
             >
               <option value="ALL" style={{ background: '#111827', color: '#fff' }}>All Log Scans Combined</option>
-              {batches.map(b => (
-                <option key={b.batch_id} value={b.batch_id} style={{ background: '#111827', color: '#fff' }}>
-                  {b.batch_id.replace(/^BATCH-\d{8}-\d{6}-/, '')} ({b.record_count} rows)
-                </option>
-              ))}
+              {[...batches].reverse().map(b => {
+                const match = b.batch_id.match(/^BATCH-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-(.*)$/);
+                let label = b.batch_id;
+                if (match) {
+                  const [_, y, m, d, hh, mm, ss, fname] = match;
+                  label = `${fname} [${y}-${m}-${d} ${hh}:${mm}:${ss}]`;
+                }
+                return (
+                  <option key={b.batch_id} value={b.batch_id} style={{ background: '#111827', color: '#fff' }}>
+                    {label} ({b.record_count} rows)
+                  </option>
+                );
+              })}
             </select>
           </div>
         )}
