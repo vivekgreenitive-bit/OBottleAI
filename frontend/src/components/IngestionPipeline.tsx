@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSystem } from '../context/SystemState';
 import { Upload, Database, CheckCircle, AlertTriangle, Play, HelpCircle, Activity, ArrowRight, XCircle } from 'lucide-react';
+import { Dashboard } from './Dashboard';
 
 interface IngestionPipelineProps {
   setActiveTab?: (tab: string) => void;
@@ -127,11 +128,6 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
           eventSource.close();
           setRunProgress('completed');
           fetchDashboard(targetBatch);
-          if (setActiveTab) {
-            setTimeout(() => {
-              setActiveTab('dashboard');
-            }, 1000);
-          }
           return;
         }
 
@@ -159,7 +155,7 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
       // Fallback trigger if stream fails
       runDiagnostics(scenarioType, targetBatch).then(() => {
         setRunProgress('completed');
-        if (setActiveTab) setActiveTab('dashboard');
+        fetchDashboard(targetBatch);
       });
     };
   };
@@ -339,61 +335,87 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
         </div>
       )}
 
-      {/* STEP 3: RUNNING ANALYSIS */}
+      {/* STEP 3: RUNNING & COMPLETED ANALYSIS */}
       {wizardStep === 3 && (
-        <div className="glass-panel" style={{ padding: '32px', maxWidth: '600px', margin: '0 auto' }}>
-          <h2 className="card-title" style={{ marginBottom: '24px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-            {runProgress === 'completed' ? (
-              <>
-                <CheckCircle size={24} style={{ color: 'var(--color-success)' }} />
-                <span>Analysis Complete — Redirecting...</span>
-              </>
-            ) : (
-              <>
-                <Activity size={24} className="text-primary animate-spin" style={{ color: 'var(--color-primary)' }} />
-                <span>AI Risk Scanning In Progress...</span>
-              </>
-            )}
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textAlign: 'center', marginBottom: '28px' }}>
-            Multi-agent reasoners are calling the backend API, computing backlog metrics, and querying Vertex AI.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {progressSteps.map((step, idx) => (
-              <div 
-                key={idx} 
-                className="glass-panel" 
-                style={{ 
-                  padding: '12px 16px', 
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                  background: step.status === 'completed' ? 'rgba(16, 185, 129, 0.03)' : step.status === 'running' ? 'rgba(59, 130, 246, 0.05)' : 'var(--bg-tertiary)',
-                  border: step.status === 'completed' ? '1px solid var(--color-success)' : step.status === 'running' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>
-                    {step.status === 'completed' && '✓ '}
-                    {step.name}
-                    {step.status === 'completed' && step.duration && ` (${step.duration})`}
-                  </span>
-                  <span 
-                    className={`badge ${step.status === 'completed' ? 'badge-low' : step.status === 'running' ? 'badge-medium' : 'badge-high'}`}
-                    style={{ textTransform: 'uppercase', fontSize: '0.75rem' }}
-                  >
-                    {step.status}
-                  </span>
-                </div>
-                {(step.log || step.status === 'running') && (
-                  <div style={{ fontSize: '0.75rem', color: step.status === 'completed' ? 'var(--color-success)' : 'var(--color-primary)', fontFamily: 'monospace', marginTop: '2px' }}>
-                    ➜ {step.log || 'Agent executing...'}
-                  </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          <div className="glass-panel" style={{ padding: '28px', maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 className="card-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {runProgress === 'completed' ? (
+                  <>
+                    <CheckCircle size={22} style={{ color: 'var(--color-success)' }} />
+                    <span>Agent Scan Complete — Results Generated Below</span>
+                  </>
+                ) : (
+                  <>
+                    <Activity size={22} className="text-primary animate-spin" style={{ color: 'var(--color-primary)' }} />
+                    <span>Live Backend Agent Execution</span>
+                  </>
                 )}
-              </div>
-            ))}
+              </h2>
+
+              {runProgress === 'completed' && (
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={() => setWizardStep(1)}
+                  style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+                >
+                  Upload New Dataset
+                </button>
+              )}
+            </div>
+
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '20px' }}>
+              Real-time Server-Sent Events (SSE) stream receiving live agent status callbacks from FastAPI microservices.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
+              {progressSteps.map((step, idx) => (
+                <div 
+                  key={idx} 
+                  className="glass-panel" 
+                  style={{ 
+                    padding: '10px 14px', 
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    background: step.status === 'completed' ? 'rgba(16, 185, 129, 0.03)' : step.status === 'running' ? 'rgba(59, 130, 246, 0.05)' : 'var(--bg-tertiary)',
+                    border: step.status === 'completed' ? '1px solid var(--color-success)' : step.status === 'running' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: '500' }}>
+                      {step.status === 'completed' && '✓ '}
+                      {step.name}
+                      {step.status === 'completed' && step.duration && ` (${step.duration})`}
+                    </span>
+                    <span 
+                      className={`badge ${step.status === 'completed' ? 'badge-low' : step.status === 'running' ? 'badge-medium' : 'badge-high'}`}
+                      style={{ textTransform: 'uppercase', fontSize: '0.7rem' }}
+                    >
+                      {step.status}
+                    </span>
+                  </div>
+                  {(step.log || step.status === 'running') && (
+                    <div style={{ fontSize: '0.72rem', color: step.status === 'completed' ? 'var(--color-success)' : 'var(--color-primary)', fontFamily: 'monospace', marginTop: '2px' }}>
+                      ➜ {step.log || 'Agent executing...'}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* INLINE DASHBOARD RESULTS ON THE EXACT SAME PAGE */}
+          {runProgress === 'completed' && (
+            <div style={{ borderTop: '1px dashed var(--glass-border)', paddingTop: '28px' }}>
+              <Dashboard 
+                onSelectBottleneck={(id) => {
+                  if (setActiveTab) setActiveTab('approvals');
+                }} 
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
