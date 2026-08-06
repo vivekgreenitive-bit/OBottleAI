@@ -12,8 +12,8 @@ import { useSystem } from './context/SystemState';
 // Helper to map tab IDs to URL hashes
 const tabToHash: Record<string, string> = {
   home: '#/',
-  ingestion: '#/new-analysis',
-  dashboard: '#/results',
+  ingestion: '#/analysis',
+  dashboard: '#/analysis',
   approvals: '#/approval',
   actions: '#/actions',
   audit: '#/audit-logs',
@@ -24,8 +24,9 @@ const tabToHash: Record<string, string> = {
 const hashToTab: Record<string, string> = {
   '#/': 'home',
   '#/home': 'home',
+  '#/analysis': 'ingestion',
   '#/new-analysis': 'ingestion',
-  '#/results': 'dashboard',
+  '#/results': 'ingestion',
   '#/approval': 'approvals',
   '#/actions': 'actions',
   '#/audit-logs': 'audit',
@@ -62,13 +63,12 @@ export const App: React.FC = () => {
 
   const handleStartDemo = async () => {
     setActiveScenario('release_delay');
-    setActiveTab('ingestion'); // Go to New Analysis Step 2 (Preview)
+    setActiveTab('ingestion');
     await loadScenario('release_delay');
   };
 
   const handleSelectBottleneck = async (id: number) => {
     await selectBottleneckById(id);
-    setActiveTab('dashboard'); // Open details on unified Results page
   };
 
   return (
@@ -99,8 +99,7 @@ export const App: React.FC = () => {
             <span style={{ opacity: 0.5 }}>/</span>
             <span style={{ color: 'var(--color-primary)', fontWeight: '700' }}>
               {activeTab === 'home' && 'Home'}
-              {activeTab === 'ingestion' && 'New Analysis'}
-              {activeTab === 'dashboard' && 'Results'}
+              {activeTab === 'ingestion' && 'Analysis & Results'}
               {activeTab === 'approvals' && 'Approval'}
               {activeTab === 'actions' && 'Actions'}
               {activeTab === 'audit' && 'Audit Logs'}
@@ -128,10 +127,9 @@ export const App: React.FC = () => {
             onStartDemo={handleStartDemo} 
             onNavigateToUpload={() => setActiveTab('ingestion')}
             hasData={stats !== null}
-            onGoToAnalysis={() => setActiveTab('dashboard')}
+            onGoToAnalysis={() => setActiveTab('ingestion')}
           />
         )}
-        {activeTab === 'dashboard' && <Dashboard onSelectBottleneck={handleSelectBottleneck} setActiveTab={setActiveTab} />}
         {activeTab === 'approvals' && <HumanGate />}
         {activeTab === 'ingestion' && (
           <IngestionPipeline 
@@ -149,6 +147,3 @@ export const App: React.FC = () => {
 };
 
 export default App;
-
-
-

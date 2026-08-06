@@ -12,8 +12,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
   
   const menuItems = [
     { id: 'home', label: 'Home', icon: HomeIcon },
-    { id: 'ingestion', label: 'New Analysis', icon: Database },
-    { id: 'dashboard', label: 'Results', icon: LayoutDashboard },
+    { id: 'ingestion', label: 'Analysis & Results', icon: LayoutDashboard },
     { id: 'approvals', label: 'Approval', icon: ShieldCheck },
     { id: 'actions', label: 'Actions', icon: Play },
     { id: 'audit', label: 'Audit Logs', icon: FileText },
