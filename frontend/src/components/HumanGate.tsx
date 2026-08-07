@@ -6,8 +6,8 @@ export const HumanGate: React.FC = () => {
   const { approvals, activeRole, approveRecommendation, rejectRecommendation, submitFeedback, fetchDashboard, batches, activeBatchId, setActiveBatchId } = useSystem();
   
   useEffect(() => {
-    fetchDashboard();
-  }, []);
+    fetchDashboard(activeBatchId);
+  }, [activeBatchId]);
   
   const [approverName, setApproverName] = useState<string>('Ops Manager');
   const [comments, setComments] = useState<Record<number, string>>({});

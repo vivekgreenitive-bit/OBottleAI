@@ -141,7 +141,13 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const res = await fetch(`${API_BASE}/ingestions/batches`);
       if (!res.ok) return;
       const data = await res.json();
-      setBatches(Array.isArray(data) ? data : []);
+      const safeBatches = Array.isArray(data) ? data : [];
+      setBatches(safeBatches);
+      if (safeBatches.length > 0 && !activeBatchId) {
+        const latest = safeBatches[safeBatches.length - 1].batch_id;
+        setActiveBatchId(latest);
+        fetchApprovals(latest);
+      }
     } catch (err) {
       console.error("Error fetching batches:", err);
     }
