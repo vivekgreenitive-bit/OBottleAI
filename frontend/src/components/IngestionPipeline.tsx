@@ -169,78 +169,50 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
 
       {/* TOP UNIFIED ACTION BAR */}
       <div className="glass-panel" style={{ padding: '20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '16px', alignItems: 'center' }}>
-          {/* Quick Scenario Selector */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>
-              Select Preloaded Scenario
-            </label>
-            <select
-              value={selectedSource}
-              onChange={(e) => {
-                if (e.target.value) handleSelectScenario(e.target.value);
-              }}
-              disabled={runProgress === 'running'}
-              style={{
-                width: '100%',
-                padding: '10px 36px 10px 14px',
-                borderRadius: '8px',
-                background: `#111827 url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 12px center`,
-                backgroundSize: '16px',
-                color: '#ffffff',
-                border: '1px solid var(--glass-border)',
-                fontWeight: '600',
-                fontSize: '0.88rem',
-                outline: 'none',
-                cursor: 'pointer',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none',
-                appearance: 'none'
-              }}
-            >
-              <option value="" style={{ background: '#111827', color: '#9ca3af' }}>-- Choose Sample Log Scenario --</option>
-              <option value="release_delay" style={{ background: '#111827', color: '#ffffff' }}>Scenario 1: Release Delay (QA Capacity Constraint)</option>
-              <option value="support_backlog" style={{ background: '#111827', color: '#ffffff' }}>Scenario 2: Support Backlog (API Session Timeouts)</option>
-              <option value="vendor_dependency" style={{ background: '#111827', color: '#ffffff' }}>Scenario 3: Vendor Delay (Checkout Epics Blocked)</option>
-              <option value="resource_overload" style={{ background: '#111827', color: '#ffffff' }}>Scenario 4: Lead Developer Workload Imbalance</option>
-            </select>
-          </div>
-
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '20px', alignItems: 'center' }}>
           {/* CSV File Upload Dropzone */}
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>
-              Or Upload Raw CSV Log
+            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '8px', textTransform: 'uppercase' }}>
+              Upload Raw CSV / Spreadsheet Log
             </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <input type="file" accept=".csv" id="csv-single-file" style={{ display: 'none' }} onChange={handleFileChange} disabled={runProgress === 'running'} />
               <label 
                 htmlFor="csv-single-file" 
                 className="btn btn-secondary" 
-                style={{ flex: 1, padding: '9px 14px', justifyContent: 'center', cursor: runProgress === 'running' ? 'not-allowed' : 'pointer' }}
+                style={{ 
+                  flex: 1, 
+                  padding: '12px 18px', 
+                  justify: 'flex-start', 
+                  cursor: runProgress === 'running' ? 'not-allowed' : 'pointer',
+                  border: '1px dashed var(--color-primary)'
+                }}
               >
-                <Upload size={16} style={{ color: 'var(--color-primary)' }} />
-                <span>{csvFile ? csvFile.name : 'Choose CSV File'}</span>
+                <Upload size={18} style={{ color: 'var(--color-primary)' }} />
+                <span style={{ fontWeight: '600', fontSize: '0.92rem' }}>
+                  {csvFile ? csvFile.name : 'Choose CSV / Excel Log File to Analyze...'}
+                </span>
               </label>
             </div>
           </div>
 
           {/* Trigger Agent Scan Button */}
-          <div style={{ paddingTop: '20px' }}>
+          <div style={{ paddingTop: '22px' }}>
             <button
               className="btn btn-primary"
               onClick={startAnalysis}
-              disabled={runProgress === 'running' || (uploadStatus !== 'success' && !selectedSource)}
-              style={{ padding: '10px 20px', fontSize: '0.95rem', fontWeight: '600' }}
+              disabled={runProgress === 'running' || !csvFile}
+              style={{ padding: '12px 24px', fontSize: '0.98rem', fontWeight: '700' }}
             >
-              <Play size={16} />
+              <Play size={18} />
               <span>Run Agent Scan</span>
-              <ArrowRight size={16} />
+              <ArrowRight size={18} />
             </button>
           </div>
         </div>
 
         {uploadMessage && (
-          <div style={{ marginTop: '12px', fontSize: '0.8rem', color: uploadStatus === 'error' ? 'var(--color-danger)' : 'var(--color-success)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ marginTop: '12px', fontSize: '0.82rem', color: uploadStatus === 'error' ? 'var(--color-danger)' : 'var(--color-success)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             {uploadStatus === 'error' ? <AlertTriangle size={14} /> : <CheckCircle size={14} />}
             <span>{uploadMessage}</span>
           </div>
