@@ -51,45 +51,49 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: '700' }}>Operations Results Dashboard</h1>
-        {batches.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--glass-bg)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
-            <Layers size={16} style={{ color: 'var(--color-primary)' }} />
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '500' }}>Log History:</span>
-            <select
-              value={activeBatchId || 'ALL'}
-              onChange={handleBatchChange}
-              style={{
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-main)',
-                border: '1px solid var(--glass-border)',
-                borderRadius: '6px',
-                padding: '4px 8px',
-                fontSize: '0.82rem',
-                fontWeight: '600',
-                outline: 'none',
-                cursor: 'pointer',
-                maxWidth: '350px'
-              }}
-            >
-              <option value="ALL" style={{ background: '#111827', color: '#fff' }}>All Log Scans Combined</option>
-              {[...batches].reverse().map(b => {
-                const match = b.batch_id.match(/^BATCH-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-(.*)$/);
-                let label = b.batch_id;
-                if (match) {
-                  const [_, y, m, d, hh, mm, ss, fname] = match;
-                  label = `${fname} [${y}-${m}-${d} ${hh}:${mm}:${ss}]`;
-                }
-                return (
-                  <option key={b.batch_id} value={b.batch_id} style={{ background: '#111827', color: '#fff' }}>
-                    {label} ({b.record_count} rows)
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-        )}
+        
+        {/* Prominent Log History Dropdown Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(59, 130, 246, 0.08)', padding: '8px 16px', borderRadius: '10px', border: '1px solid var(--color-primary)' }}>
+          <Layers size={18} style={{ color: 'var(--color-primary)' }} />
+          <span style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: '700' }}>Log History Scans:</span>
+          <select
+            value={activeBatchId || 'ALL'}
+            onChange={handleBatchChange}
+            style={{
+              background: '#111827 url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%233b82f6\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 10px center',
+              backgroundSize: '16px',
+              color: '#ffffff',
+              border: '1px solid var(--glass-border)',
+              borderRadius: '6px',
+              padding: '6px 32px 6px 12px',
+              fontSize: '0.85rem',
+              fontWeight: '600',
+              outline: 'none',
+              cursor: 'pointer',
+              maxWidth: '380px',
+              WebkitAppearance: 'none',
+              MozAppearance: 'none',
+              appearance: 'none'
+            }}
+          >
+            <option value="ALL" style={{ background: '#111827', color: '#fff' }}>All Log Scans Combined</option>
+            {[...batches].reverse().map(b => {
+              const match = b.batch_id.match(/^BATCH-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-(.*)$/);
+              let label = b.batch_id;
+              if (match) {
+                const [_, y, m, d, hh, mm, ss, fname] = match;
+                label = `${fname} [${y}-${m}-${d} ${hh}:${mm}:${ss}]`;
+              }
+              return (
+                <option key={b.batch_id} value={b.batch_id} style={{ background: '#111827', color: '#fff' }}>
+                  {label} ({b.record_count} rows)
+                </option>
+              );
+            })}
+          </select>
+        </div>
       </div>
 
       {/* Health metrics grid */}
