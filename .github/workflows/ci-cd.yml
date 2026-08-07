@@ -24,10 +24,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Backend Validation Tests
+      - name: Run Backend Pytest Suite
         run: |
           cd backend
-          python test_backend.py
+          pip install pytest
+          PYTHONPATH=. pytest tests -v
 
   frontend-build:
     runs-on: ubuntu-latest
