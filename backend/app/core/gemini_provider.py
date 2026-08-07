@@ -2,7 +2,7 @@ import os
 import json
 import logging
 import re
-from typing import Dict, Any, Type, Optional
+from typing import Dict, Any, Type, Optional, List
 from pydantic import BaseModel
 import google.generativeai as genai
 from dotenv import load_dotenv
