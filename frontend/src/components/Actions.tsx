@@ -22,11 +22,13 @@ export const Actions: React.FC = () => {
 
   const fetchActions = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/v1/actions');
+      const apiHost = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : 'localhost';
+      const res = await fetch(`http://${apiHost}:8080/api/v1/actions`);
+      if (!res.ok) return;
       const data = await res.json();
-      setActions(data);
+      setActions(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching actions:", err);
     }
   };
 
