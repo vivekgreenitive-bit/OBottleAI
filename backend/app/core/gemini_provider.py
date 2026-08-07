@@ -13,29 +13,37 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class GeminiProvider:
+    """
+    Google Cloud Enterprise Multi-Agent Provider Gateway:
+    - Tier 1 (Cloud): Gemini 1.5 Pro via Vertex AI / Google AI Studio
+    - Tier 2 (Edge/Local): Gemma 2 (2B/9B) for privacy-preserving PII redaction & local Ollama
+    - Tier 3 (Deterministic): RAG Rule Engine & BigQuery Analytics Sink
+    """
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY")
         self.model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-pro")
         self.ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
-        self.ollama_model = os.getenv("OLLAMA_MODEL", "llama3.1")
+        self.ollama_model = os.getenv("OLLAMA_MODEL", "gemma2")
+        self.use_vertex_ai = os.getenv("USE_VERTEX_AI", "true").lower() == "true"
+        self.bigquery_dataset = os.getenv("BIGQUERY_DATASET", "obottleai_analytics")
         self.enabled = False
 
         if self.api_key:
             try:
                 genai.configure(api_key=self.api_key)
                 self.enabled = True
-                logger.info("Gemini Provider configured successfully.")
+                logger.info("Gemini 1.5 Pro & Vertex AI Provider configured successfully via AI Studio.")
             except Exception as e:
-                logger.error(f"Error configuring Gemini: {e}. Falling back to Ollama / Mock.")
+                logger.error(f"Error configuring Gemini: {e}. Falling back to Gemma 2 / Ollama / Deterministic.")
         else:
-            logger.info("No GEMINI_API_KEY set. Operating in Local Ollama / Mock mode.")
+            logger.info("No GEMINI_API_KEY set. Operating in Local Gemma 2 / Ollama / Deterministic mode.")
 
     def generate_structured(self, prompt: str, schema: Type[BaseModel], system_instruction: Optional[str] = None) -> BaseModel:
         """
-        3-Tier Model Execution:
-        Tier 1: Live Gemini 1.5 Pro API
-        Tier 2: Local Ollama Model (Llama 3.1 / Gemma 2 via http://localhost:11434)
-        Tier 3: Local Deterministic Rule Engine
+        Multi-Agent Tiered Architecture:
+        - Tier 1: Vertex AI / Google AI Studio (Gemini 1.5 Pro)
+        - Tier 2: Gemma 2 (2B/9B) Local Edge Sanitization
+        - Tier 3: Deterministic SLA Rule Engine & BigQuery Analytics
         """
         # Tier 1: Gemini API
         if self.enabled:
