@@ -1,0 +1,503 @@
+{
+  "communities": {
+    "0": [
+      "backend_app_agents_agents",
+      "backend_app_agents_agents_actionexecutionagent",
+      "backend_app_agents_agents_actionexecutionagent_execute",
+      "backend_app_agents_agents_actionitemschema",
+      "backend_app_agents_agents_bottleneckdetectionagent",
+      "backend_app_agents_agents_businessimpactagent",
+      "backend_app_agents_agents_businessimpactagent_calculate_score",
+      "backend_app_agents_agents_dataanalysisagent",
+      "backend_app_agents_agents_geminiorchestratorschema",
+      "backend_app_agents_agents_py_basemodel",
+      "backend_app_agents_agents_rationale_119",
+      "backend_app_agents_agents_rationale_138",
+      "backend_app_agents_agents_rationale_43",
+      "backend_app_agents_agents_rationale_50",
+      "backend_app_agents_agents_rationale_91",
+      "backend_app_agents_agents_rootcauseagent",
+      "backend_app_agents_agents_rootcauseagent_init",
+      "backend_app_analytics_analytics",
+      "backend_app_analytics_analytics_operationsanalytics",
+      "backend_app_core_gemini_provider",
+      "backend_app_core_gemini_provider_geminiprovider",
+      "backend_app_core_gemini_provider_geminiprovider_init",
+      "backend_app_core_gemini_provider_rationale_16",
+      "backend_app_models_models",
+      "backend_app_models_models_actionexecution",
+      "backend_app_models_models_approval",
+      "backend_app_models_models_auditlog",
+      "backend_app_models_models_bottleneck",
+      "backend_app_models_models_bottleneckevidence",
+      "backend_app_models_models_datasource",
+      "backend_app_models_models_knowledgedocument",
+      "backend_app_models_models_operationalrecord",
+      "backend_app_models_models_recommendation",
+      "backend_app_models_models_rootcausehypothesis",
+      "backend_app_models_models_systemconfig",
+      "backend_app_models_models_user",
+      "backend_app_models_models_userfeedback",
+      "backend_app_rag_rag_service",
+      "backend_app_rag_rag_service_ragservice",
+      "backend_app_workflows_orchestrator",
+      "backend_app_workflows_orchestrator_py_session",
+      "backend_app_workflows_orchestrator_rationale_24",
+      "backend_app_workflows_orchestrator_workfloworchestrator",
+      "backend_app_workflows_orchestrator_workfloworchestrator_init",
+      "backend_app_workflows_orchestrator_workfloworchestrator_run_diagnostics",
+      "backend_app_workflows_orchestrator_workfloworchestrator_write_audit_log",
+      "backend_test_backend",
+      "backend_test_backend_run_tests",
+      "backend_tests_test_pipeline",
+      "backend_tests_test_pipeline_test_audit_logs_persistence",
+      "backend_tests_test_pipeline_test_orchestrator_diagnostics",
+      "backend_tests_test_pipeline_test_recommendation_and_approval_flow",
+      "backend_tests_test_pipeline_test_system_config_persistence",
+      "base",
+      "recommendation"
+    ],
+    "1": [
+      "frontend_src_app",
+      "frontend_src_app_app",
+      "frontend_src_app_hashtotab",
+      "frontend_src_app_tabtohash",
+      "frontend_src_components_actions",
+      "frontend_src_components_actions_actionrecord",
+      "frontend_src_components_actions_actions",
+      "frontend_src_components_actions_formatexecutiontime",
+      "frontend_src_components_auditlogs",
+      "frontend_src_components_auditlogs_auditlogs",
+      "frontend_src_components_dashboard",
+      "frontend_src_components_dashboard_dashboard",
+      "frontend_src_components_dashboard_dashboardprops",
+      "frontend_src_components_home",
+      "frontend_src_components_home_home",
+      "frontend_src_components_home_homeprops",
+      "frontend_src_components_humangate",
+      "frontend_src_components_humangate_humangate",
+      "frontend_src_components_ingestionpipeline",
+      "frontend_src_components_ingestionpipeline_ingestionpipeline",
+      "frontend_src_components_ingestionpipeline_ingestionpipelineprops",
+      "frontend_src_components_navigation",
+      "frontend_src_components_navigation_navigation",
+      "frontend_src_components_navigation_navigationprops",
+      "frontend_src_components_orchestrator",
+      "frontend_src_components_orchestrator_orchestrator",
+      "frontend_src_components_settings",
+      "frontend_src_components_settings_settings",
+      "frontend_src_context_systemstate",
+      "frontend_src_context_systemstate_auditlog",
+      "frontend_src_context_systemstate_batchitem",
+      "frontend_src_context_systemstate_bottleneckdetail",
+      "frontend_src_context_systemstate_dashboardstats",
+      "frontend_src_context_systemstate_recommendation",
+      "frontend_src_context_systemstate_systemconfig",
+      "frontend_src_context_systemstate_systemcontext",
+      "frontend_src_context_systemstate_systemcontextprops",
+      "frontend_src_context_systemstate_systemprovider",
+      "frontend_src_context_systemstate_uploadresult",
+      "frontend_src_context_systemstate_usesystem",
+      "frontend_src_main",
+      "ref_react"
+    ],
+    "2": [
+      "backend_app_api_execution_service",
+      "backend_app_api_execution_service_approve_action",
+      "backend_app_api_execution_service_get_config",
+      "backend_app_api_execution_service_get_executed_actions",
+      "backend_app_api_execution_service_get_pending_approvals",
+      "backend_app_api_execution_service_modify_action",
+      "backend_app_api_execution_service_py_get",
+      "backend_app_api_execution_service_py_post",
+      "backend_app_api_execution_service_py_session",
+      "backend_app_api_execution_service_reject_action",
+      "backend_app_api_execution_service_submit_feedback",
+      "backend_app_api_execution_service_update_config",
+      "backend_app_schemas_schemas",
+      "backend_app_schemas_schemas_actionexecutionresponse",
+      "backend_app_schemas_schemas_approvalrequest",
+      "backend_app_schemas_schemas_approvalresponse",
+      "backend_app_schemas_schemas_auditlogresponse",
+      "backend_app_schemas_schemas_bottleneckevidenceresponse",
+      "backend_app_schemas_schemas_bottleneckresponse",
+      "backend_app_schemas_schemas_config",
+      "backend_app_schemas_schemas_dashboardstats",
+      "backend_app_schemas_schemas_knowledgedocumentcreate",
+      "backend_app_schemas_schemas_knowledgedocumentresponse",
+      "backend_app_schemas_schemas_operationalrecordcreate",
+      "backend_app_schemas_schemas_operationalrecordresponse",
+      "backend_app_schemas_schemas_py_basemodel",
+      "backend_app_schemas_schemas_recommendationresponse",
+      "backend_app_schemas_schemas_rootcausehypothesisresponse",
+      "backend_app_schemas_schemas_systemconfigcreate",
+      "backend_app_schemas_schemas_systemconfigresponse",
+      "backend_app_schemas_schemas_userfeedbackcreate"
+    ],
+    "3": [
+      "frontend_tsconfig_app",
+      "frontend_tsconfig_app_compileroptions",
+      "frontend_tsconfig_app_compileroptions_allowarbitraryextensions",
+      "frontend_tsconfig_app_compileroptions_allowimportingtsextensions",
+      "frontend_tsconfig_app_compileroptions_erasablesyntaxonly",
+      "frontend_tsconfig_app_compileroptions_jsx",
+      "frontend_tsconfig_app_compileroptions_lib",
+      "frontend_tsconfig_app_compileroptions_module",
+      "frontend_tsconfig_app_compileroptions_moduledetection",
+      "frontend_tsconfig_app_compileroptions_moduleresolution",
+      "frontend_tsconfig_app_compileroptions_noemit",
+      "frontend_tsconfig_app_compileroptions_nofallthroughcasesinswitch",
+      "frontend_tsconfig_app_compileroptions_nounusedlocals",
+      "frontend_tsconfig_app_compileroptions_nounusedparameters",
+      "frontend_tsconfig_app_compileroptions_skiplibcheck",
+      "frontend_tsconfig_app_compileroptions_target",
+      "frontend_tsconfig_app_compileroptions_tsbuildinfofile",
+      "frontend_tsconfig_app_compileroptions_types",
+      "frontend_tsconfig_app_compileroptions_verbatimmodulesyntax",
+      "frontend_tsconfig_app_include",
+      "frontend_tsconfig_app_json_ref_es2023",
+      "ref_dom",
+      "ref_src",
+      "ref_vite_client"
+    ],
+    "4": [
+      "api_route",
+      "backend_app_main",
+      "backend_app_main_get_dashboard_data",
+      "backend_app_main_health",
+      "backend_app_main_proxy_request",
+      "backend_app_main_py_get",
+      "backend_app_main_py_session",
+      "backend_app_main_rationale_106",
+      "backend_app_main_ready",
+      "backend_app_main_route_actions",
+      "backend_app_main_route_actions_root",
+      "backend_app_main_route_approvals",
+      "backend_app_main_route_approvals_root",
+      "backend_app_main_route_audit_logs",
+      "backend_app_main_route_bottlenecks",
+      "backend_app_main_route_bottlenecks_root",
+      "backend_app_main_route_config",
+      "backend_app_main_route_feedback",
+      "backend_app_main_route_ingestions",
+      "backend_app_main_route_ingestions_root",
+      "backend_app_main_route_knowledge",
+      "backend_app_main_route_orchestration",
+      "request"
+    ],
+    "5": [
+      "frontend_oxlintrc",
+      "frontend_oxlintrc_plugins",
+      "frontend_oxlintrc_rules",
+      "frontend_oxlintrc_rules_react_only_export_components",
+      "frontend_oxlintrc_rules_react_rules_of_hooks",
+      "frontend_oxlintrc_schema",
+      "frontend_package_devdependencies",
+      "frontend_package_devdependencies_oxlint",
+      "frontend_package_devdependencies_types_node",
+      "frontend_package_devdependencies_types_react",
+      "frontend_package_devdependencies_types_react_dom",
+      "frontend_package_devdependencies_typescript",
+      "frontend_package_devdependencies_vite",
+      "frontend_package_devdependencies_vitejs_plugin_react",
+      "oxlint",
+      "ref_oxc",
+      "ref_warn",
+      "types_node",
+      "types_react",
+      "types_react_dom",
+      "typescript",
+      "vite",
+      "vitejs_plugin_react"
+    ],
+    "6": [
+      "frontend_tsconfig_node",
+      "frontend_tsconfig_node_compileroptions",
+      "frontend_tsconfig_node_compileroptions_allowimportingtsextensions",
+      "frontend_tsconfig_node_compileroptions_erasablesyntaxonly",
+      "frontend_tsconfig_node_compileroptions_lib",
+      "frontend_tsconfig_node_compileroptions_module",
+      "frontend_tsconfig_node_compileroptions_moduledetection",
+      "frontend_tsconfig_node_compileroptions_noemit",
+      "frontend_tsconfig_node_compileroptions_nofallthroughcasesinswitch",
+      "frontend_tsconfig_node_compileroptions_nounusedlocals",
+      "frontend_tsconfig_node_compileroptions_nounusedparameters",
+      "frontend_tsconfig_node_compileroptions_skiplibcheck",
+      "frontend_tsconfig_node_compileroptions_target",
+      "frontend_tsconfig_node_compileroptions_tsbuildinfofile",
+      "frontend_tsconfig_node_compileroptions_types",
+      "frontend_tsconfig_node_compileroptions_verbatimmodulesyntax",
+      "frontend_tsconfig_node_include",
+      "frontend_tsconfig_node_json_ref_es2023",
+      "ref_node",
+      "ref_vite_config_ts"
+    ],
+    "7": [
+      "frontend_package",
+      "frontend_package_dependencies",
+      "frontend_package_dependencies_lucide_react",
+      "frontend_package_dependencies_react",
+      "frontend_package_dependencies_react_dom",
+      "frontend_package_dependencies_recharts",
+      "frontend_package_name",
+      "frontend_package_private",
+      "frontend_package_scripts",
+      "frontend_package_scripts_build",
+      "frontend_package_scripts_dev",
+      "frontend_package_scripts_lint",
+      "frontend_package_scripts_preview",
+      "frontend_package_type",
+      "frontend_package_version",
+      "lucide_react",
+      "react",
+      "react_dom",
+      "recharts"
+    ],
+    "8": [
+      "backend_app_api_ingestion_service",
+      "backend_app_api_ingestion_service_get_batches",
+      "backend_app_api_ingestion_service_get_ingested_records",
+      "backend_app_api_ingestion_service_load_sample",
+      "backend_app_api_ingestion_service_py_get",
+      "backend_app_api_ingestion_service_py_post",
+      "backend_app_api_ingestion_service_py_session",
+      "backend_app_api_ingestion_service_upload_file",
+      "backend_app_db_sample_data",
+      "backend_app_db_sample_data_py_session",
+      "backend_app_db_sample_data_rationale_6",
+      "backend_app_db_sample_data_seed_scenario_data",
+      "uploadfile"
+    ],
+    "9": [
+      "backend_app_api_orchestrator_service",
+      "backend_app_api_orchestrator_service_get_audit_logs",
+      "backend_app_api_orchestrator_service_get_bottleneck",
+      "backend_app_api_orchestrator_service_get_bottlenecks",
+      "backend_app_api_orchestrator_service_get_knowledge_docs",
+      "backend_app_api_orchestrator_service_py_get",
+      "backend_app_api_orchestrator_service_py_post",
+      "backend_app_api_orchestrator_service_py_session",
+      "backend_app_api_orchestrator_service_rationale_33",
+      "backend_app_api_orchestrator_service_run_analysis",
+      "backend_app_api_orchestrator_service_stream_analysis"
+    ],
+    "10": [
+      "backend_app_core_gemini_provider_geminiprovider_call_ollama",
+      "backend_app_core_gemini_provider_geminiprovider_clean_json_text",
+      "backend_app_core_gemini_provider_geminiprovider_generate_mock_data",
+      "backend_app_core_gemini_provider_geminiprovider_generate_structured",
+      "backend_app_core_gemini_provider_geminiprovider_map_csv_headers",
+      "backend_app_core_gemini_provider_py_basemodel",
+      "backend_app_core_gemini_provider_rationale_101",
+      "backend_app_core_gemini_provider_rationale_143",
+      "backend_app_core_gemini_provider_rationale_153",
+      "backend_app_core_gemini_provider_rationale_42",
+      "backend_app_core_gemini_provider_rationale_76"
+    ],
+    "11": [
+      "backend_app_db_database",
+      "backend_app_db_database_get_db",
+      "backend_app_main_startup_event",
+      "backend_app_rag_rag_service_py_any",
+      "backend_app_rag_rag_service_py_session",
+      "backend_app_rag_rag_service_ragservice_init_knowledge_base",
+      "backend_app_rag_rag_service_ragservice_retrieve_context",
+      "backend_app_rag_rag_service_rationale_40",
+      "backend_app_rag_rag_service_rationale_58",
+      "backend_tests_test_pipeline_test_rag_initialization",
+      "on_event"
+    ],
+    "12": [
+      "backend_app_agents_agents_bottleneckdetectionagent_run",
+      "backend_app_agents_agents_dataanalysisagent_run",
+      "backend_app_agents_agents_py_any",
+      "backend_app_agents_agents_py_session",
+      "backend_app_agents_agents_rootcauseagent_analyze",
+      "backend_app_analytics_analytics_operationsanalytics_calculate_metrics",
+      "backend_app_analytics_analytics_py_any",
+      "backend_app_analytics_analytics_py_session",
+      "backend_app_analytics_analytics_rationale_9",
+      "backend_tests_test_pipeline_test_scenario_seeding_and_analytics"
+    ],
+    "13": [
+      "frontend_tsconfig",
+      "frontend_tsconfig_files",
+      "frontend_tsconfig_references"
+    ],
+    "14": [
+      "backend_tests_test_pipeline_db_session",
+      "fixture"
+    ],
+    "15": [
+      "backend_tests_init"
+    ],
+    "16": [
+      "frontend_vite_config"
+    ]
+  },
+  "cohesion": {
+    "0": 0.14006734006734006,
+    "1": 0.10220673635307782,
+    "2": 0.16344086021505377,
+    "3": 0.08333333333333333,
+    "4": 0.2450592885375494,
+    "5": 0.08695652173913043,
+    "6": 0.1,
+    "7": 0.10526315789473684,
+    "8": 0.23076923076923078,
+    "9": 0.34545454545454546,
+    "10": 0.23636363636363636,
+    "11": 0.18181818181818182,
+    "12": 0.2222222222222222,
+    "13": 0.6666666666666666,
+    "14": 1.0,
+    "15": 1.0,
+    "16": 1.0
+  },
+  "gods": [
+    {
+      "id": "backend_app_workflows_orchestrator_workfloworchestrator",
+      "label": "WorkflowOrchestrator",
+      "degree": 23
+    },
+    {
+      "id": "backend_app_core_gemini_provider_geminiprovider",
+      "label": "GeminiProvider",
+      "degree": 21
+    },
+    {
+      "id": "backend_app_rag_rag_service_ragservice",
+      "label": "RAGService",
+      "degree": 18
+    },
+    {
+      "id": "frontend_tsconfig_app_compileroptions",
+      "label": "compilerOptions",
+      "degree": 18
+    },
+    {
+      "id": "backend_app_agents_agents_actionexecutionagent",
+      "label": "ActionExecutionAgent",
+      "degree": 17
+    },
+    {
+      "id": "backend_app_models_models_operationalrecord",
+      "label": "OperationalRecord",
+      "degree": 17
+    },
+    {
+      "id": "backend_app_models_models_bottleneck",
+      "label": "Bottleneck",
+      "degree": 17
+    },
+    {
+      "id": "backend_app_models_models_systemconfig",
+      "label": "SystemConfig",
+      "degree": 17
+    },
+    {
+      "id": "frontend_src_context_systemstate_usesystem",
+      "label": "useSystem()",
+      "degree": 17
+    },
+    {
+      "id": "backend_app_main_proxy_request",
+      "label": "proxy_request()",
+      "degree": 16
+    }
+  ],
+  "surprises": [
+    {
+      "source": "ActionItemSchema",
+      "target": "OperationsAnalytics",
+      "source_files": [
+        "backend/app/agents/agents.py",
+        "backend/app/analytics/analytics.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source"
+    },
+    {
+      "source": "ActionItemSchema",
+      "target": "GeminiProvider",
+      "source_files": [
+        "backend/app/agents/agents.py",
+        "backend/app/core/gemini_provider.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source"
+    },
+    {
+      "source": "ActionItemSchema",
+      "target": "ActionExecution",
+      "source_files": [
+        "backend/app/agents/agents.py",
+        "backend/app/models/models.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source"
+    },
+    {
+      "source": "ActionItemSchema",
+      "target": "AuditLog",
+      "source_files": [
+        "backend/app/agents/agents.py",
+        "backend/app/models/models.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source"
+    },
+    {
+      "source": "ActionItemSchema",
+      "target": "Bottleneck",
+      "source_files": [
+        "backend/app/agents/agents.py",
+        "backend/app/models/models.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `GeminiProvider` connect `WorkflowOrchestrator` to `seed_scenario_data`, `.generate_structured`?",
+      "why": "High betweenness centrality (0.054) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `plugins` connect `devDependencies` to `App.tsx`?",
+      "why": "High betweenness centrality (0.044) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `devDependencies` connect `devDependencies` to `package.json`?",
+      "why": "High betweenness centrality (0.043) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 13 inferred relationships involving `WorkflowOrchestrator` (e.g. with `BottleneckDetectionAgent` and `BusinessImpactAgent`) actually correct?",
+      "why": "`WorkflowOrchestrator` has 13 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 8 inferred relationships involving `GeminiProvider` (e.g. with `ActionExecutionAgent` and `ActionItemSchema`) actually correct?",
+      "why": "`GeminiProvider` has 8 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 9 inferred relationships involving `RAGService` (e.g. with `ActionExecutionAgent` and `ActionItemSchema`) actually correct?",
+      "why": "`RAGService` has 9 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 9 inferred relationships involving `ActionExecutionAgent` (e.g. with `OperationsAnalytics` and `GeminiProvider`) actually correct?",
+      "why": "`ActionExecutionAgent` has 9 INFERRED edges - model-reasoned connections that need verification."
+    }
+  ]
+}

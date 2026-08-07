@@ -94,7 +94,11 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
       if (result.status === 'success') {
         setUploadStatus('success');
         setUploadMessage(result.message);
-        if (result.batch_id) targetBatch = result.batch_id;
+        if (result.batch_id) {
+          targetBatch = result.batch_id;
+          setActiveBatchId(result.batch_id);
+          await fetchDashboard(result.batch_id);
+        }
       } else {
         setUploadStatus('error');
         setUploadMessage(result.message || 'Upload failed');
