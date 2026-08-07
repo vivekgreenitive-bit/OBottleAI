@@ -15,9 +15,9 @@ export const Home: React.FC<HomeProps> = ({ onStartDemo, onNavigateToUpload, has
       <div style={{ textAlign: 'center', marginBottom: '48px' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
           <Activity size={48} style={{ color: 'var(--color-primary)' }} />
-          <h1 style={{ fontSize: '3rem', fontWeight: '800', tracking: '-0.02em', margin: 0 }}>OBottleAI</h1>
+          <h1 style={{ fontSize: '3rem', fontWeight: '800', letterSpacing: '-0.02em', margin: 0 }}>OBottleAI</h1>
         </div>
-        <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', maxContent: '600px', margin: '0 auto', lineHeight: '1.6' }}>
+        <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto', lineHeight: '1.6' }}>
           Detect, explain, and resolve operational bottlenecks before they impact customers and cost you money.
         </p>
       </div>

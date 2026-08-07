@@ -201,7 +201,7 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
                 style={{ 
                   flex: 1, 
                   padding: '12px 18px', 
-                  justify: 'flex-start', 
+                  justifyContent: 'flex-start', 
                   cursor: runProgress === 'running' ? 'not-allowed' : 'pointer',
                   border: '1px dashed var(--color-primary)'
                 }}
