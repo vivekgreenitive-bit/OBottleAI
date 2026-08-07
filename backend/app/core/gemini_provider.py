@@ -196,8 +196,11 @@ class GeminiProvider:
         cost_impact = float(delay_days * 2500.0 + (blocked_count * 1200.0))
 
         # Construct dynamic analysis output
+        evidence_headline = evidence_lines[0] if evidence_lines else "Workflow queue blockage"
+        title_summary = evidence_headline[:55] + "..." if len(evidence_headline) > 55 else evidence_headline
+        
         dynamic_analysis = {
-            "bottleneck_title": f"Operational Risk: {evidence_lines[0][:60]}..." if len(evidence_lines[0]) > 60 else f"Operational Risk: {evidence_lines[0]}",
+            "bottleneck_title": f"Operational Risk: {title_summary}",
             "summary": f"Diagnostic agents detected operational bottleneck issues in active workflow queues. Evidence indicates {len(evidence_lines)} key risk factors requiring active mitigation.",
             "process": "Operational Workflow Pipeline",
             "severity": severity_level,

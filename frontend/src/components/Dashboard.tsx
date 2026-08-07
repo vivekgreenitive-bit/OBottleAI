@@ -11,17 +11,20 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setActiveTab }) => {
   const { stats, bottlenecks, selectedBottleneck, selectBottleneckById, batches, activeBatchId, setActiveBatchId, fetchDashboard } = useSystem();
 
-  // Load first bottleneck details by default if available and none selected
+  // Load first bottleneck details when batch changes or bottlenecks update
   useEffect(() => {
-    if (bottlenecks.length > 0 && !selectedBottleneck) {
-      selectBottleneckById(bottlenecks[0].id);
+    if (bottlenecks.length > 0) {
+      const exists = selectedBottleneck && bottlenecks.some(b => b.id === selectedBottleneck.id);
+      if (!exists) {
+        selectBottleneckById(bottlenecks[0].id);
+      }
     }
-  }, [bottlenecks, selectedBottleneck]);
+  }, [bottlenecks]);
 
-  const handleBatchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleBatchChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value === 'ALL' ? null : e.target.value;
     setActiveBatchId(val);
-    fetchDashboard(val);
+    await fetchDashboard(val);
   };
 
   if (!stats || (stats.active_bottlenecks_count === 0 && bottlenecks.length === 0)) {

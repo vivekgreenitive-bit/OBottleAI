@@ -107,30 +107,30 @@ async def upload_file(file: UploadFile = File(...), source: str = Form("CSV_Uplo
                 except ValueError:
                     return 0.0
             
-            raw_owner = find_field(row, "owner", ["owner", "assignee"], "Unassigned")
+            raw_owner = find_field(row, "owner", ["owner", "assignee", "engineer", "person_assigned", "user", "lead", "resource"], "Unassigned")
             redacted_owner = re.sub(r'[\w\.-]+@[\w\.-]+', '[REDACTED_EMAIL]', str(raw_owner))
             
             record = OperationalRecord(
                 batch_id=batch_id,
                 source=source,
-                entity_type=find_field(row, "entity_type", ["entity_type", "type"], "task"),
-                entity_id=find_field(row, "entity_id", ["entity_id", "id", "issue_key", "ticket_id", "key"], f"TASK-{int(time.time())}-{records_count}"),
-                project=find_field(row, "project", ["project", "project_name", "module", "system"], "Default"),
-                task_name=find_field(row, "task_name", ["task_name", "summary", "title", "name", "subject", "description"], "Ingested Task"),
+                entity_type=find_field(row, "entity_type", ["entity_type", "type", "kind", "issue_type"], "task"),
+                entity_id=find_field(row, "entity_id", ["entity_id", "id", "issue_key", "ticket_id", "key", "number", "code"], f"TASK-{int(time.time())}-{records_count}"),
+                project=find_field(row, "project", ["project", "project_name", "module", "system", "component", "application"], "Default"),
+                task_name=find_field(row, "task_name", ["task_name", "summary", "title", "name", "subject", "description", "issue_summary", "work_item", "headline", "task"], "Ingested Task"),
                 owner=redacted_owner,
-                team=find_field(row, "team", ["team", "group", "department"], "Unassigned"),
-                status=find_field(row, "status", ["status", "state"], "To Do"),
-                priority=find_field(row, "priority", ["priority", "severity"], "medium"),
-                created_date=parse_date(find_field(row, "created_date", ["created_date", "created", "created_at"])) or now,
-                due_date=parse_date(find_field(row, "due_date", ["due_date", "due", "due_at", "deadline"])),
-                completed_date=parse_date(find_field(row, "completed_date", ["completed_date", "completed", "completed_at", "resolved", "resolved_at"])),
-                dependencies=find_field(row, "dependencies", ["dependencies", "depends_on", "dependency", "blocker"]),
+                team=find_field(row, "team", ["team", "group", "department", "org", "squad"], "Unassigned"),
+                status=find_field(row, "status", ["status", "state", "progress", "stage"], "To Do"),
+                priority=find_field(row, "priority", ["priority", "severity", "urgency", "impact"], "medium"),
+                created_date=parse_date(find_field(row, "created_date", ["created_date", "created", "created_at", "open_date", "start_date"])) or now,
+                due_date=parse_date(find_field(row, "due_date", ["due_date", "due", "due_at", "deadline", "target_date"])),
+                completed_date=parse_date(find_field(row, "completed_date", ["completed_date", "completed", "completed_at", "resolved", "resolved_at", "finish_date"])),
+                dependencies=find_field(row, "dependencies", ["dependencies", "depends_on", "dependency", "blocker", "blocked_by"]),
                 estimated_effort=parse_float(find_field(row, "estimated_effort", ["estimated_effort", "estimated", "effort", "story_points", "estimate", "estimated_hours"])),
                 actual_effort=parse_float(find_field(row, "actual_effort", ["actual_effort", "actual", "time_spent", "actual_hours"])),
-                blocked_duration=parse_float(find_field(row, "blocked_duration", ["blocked_duration", "blocked", "blocked_time", "blocked_days", "days_open"])),
-                customer=find_field(row, "customer", ["customer", "client", "company"]),
-                revenue_impact=parse_float(find_field(row, "revenue_impact", ["revenue_impact", "revenue"])),
-                cost_impact=parse_float(find_field(row, "cost_impact", ["cost_impact", "cost"]))
+                blocked_duration=parse_float(find_field(row, "blocked_duration", ["blocked_duration", "blocked", "blocked_time", "blocked_days", "days_open", "delay_days"])),
+                customer=find_field(row, "customer", ["customer", "client", "company", "account"]),
+                revenue_impact=parse_float(find_field(row, "revenue_impact", ["revenue_impact", "revenue", "financial_impact"])),
+                cost_impact=parse_float(find_field(row, "cost_impact", ["cost_impact", "cost", "risk_cost"]))
             )
             db.add(record)
             records_count += 1
