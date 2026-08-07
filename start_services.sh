@@ -15,10 +15,10 @@ sleep 1
 echo "[2/4] Launching FastAPI Microservices (Gateway: 8080)..."
 source backend/venv/bin/activate
 
-(cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8080 > ../backend_gateway.log 2>&1 &)
-(cd backend && uvicorn app.api.ingestion_service:app --host 0.0.0.0 --port 8081 > ../backend_ingestion.log 2>&1 &)
-(cd backend && uvicorn app.api.orchestrator_service:app --host 0.0.0.0 --port 8082 > ../backend_orchestrator.log 2>&1 &)
-(cd backend && uvicorn app.api.execution_service:app --host 0.0.0.0 --port 8083 > ../backend_execution.log 2>&1 &)
+(cd backend && nohup uvicorn app.main:app --host 0.0.0.0 --port 8080 > ../backend_gateway.log 2>&1 &)
+(cd backend && nohup uvicorn app.api.ingestion_service:app --host 0.0.0.0 --port 8081 > ../backend_ingestion.log 2>&1 &)
+(cd backend && nohup uvicorn app.api.orchestrator_service:app --host 0.0.0.0 --port 8082 > ../backend_orchestrator.log 2>&1 &)
+(cd backend && nohup uvicorn app.api.execution_service:app --host 0.0.0.0 --port 8083 > ../backend_execution.log 2>&1 &)
 
 sleep 3
 
