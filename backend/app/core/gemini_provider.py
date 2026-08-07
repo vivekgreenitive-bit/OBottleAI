@@ -239,12 +239,12 @@ class GeminiProvider:
             "recommended_actions": [
                 {
                     "priority": 1,
-                    "action": f"Reallocate assigned tasks and unblock active dependencies related to: {evidence_lines[0]}",
-                    "owner": "Operations Lead",
-                    "deadline": "2026-08-06",
+                    "action": f"Unblock active dependencies and reallocate operational queue: {evidence_lines[0]}",
+                    "owner": resource_mentions[0] if resource_mentions else ("Finance Lead" if "fintech" in prompt.lower() or "FIN" in prompt else "Operations Lead"),
+                    "deadline": "2026-08-10",
                     "approval_required": True,
-                    "expected_outcome": "Reduces operational queue cycle time and prevents SLA breach penalties.",
-                    "expected_risk_reduction": 45.0
+                    "expected_outcome": f"Eliminates estimated ${cost_impact:,.0f} penalty risk and reduces delay by {delay_days} days.",
+                    "expected_risk_reduction": round(min(85.0, 35.0 + (delay_days * 4.5)), 1)
                 }
             ],
             "assumptions": [
