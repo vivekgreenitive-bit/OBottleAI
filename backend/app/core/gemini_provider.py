@@ -45,23 +45,26 @@ class GeminiProvider:
         - Tier 2: Gemma 2 (2B/9B) Local Edge Sanitization
         - Tier 3: Deterministic SLA Rule Engine & BigQuery Analytics
         """
-        # Tier 1: Gemini API
+        # Tier 1: Gemini API (Cloud)
         if self.enabled:
-            try:
-                model = genai.GenerativeModel(
-                    model_name=self.model_name,
-                    generation_config={"response_mime_type": "application/json"},
-                    system_instruction=system_instruction
-                )
-                response = model.generate_content(prompt)
-                text = response.text
-                logger.info(f"Gemini raw response: {text[:100]}...")
-                
-                cleaned_text = self._clean_json_text(text)
-                json_data = json.loads(cleaned_text)
-                return schema.model_validate(json_data)
-            except Exception as e:
-                logger.warning(f"Tier 1 (Gemini API) unavailable/blocked: {e}. Falling back to Tier 2 (Local Ollama).")
+            for m_name in [self.model_name, "gemini-1.5-flash", "gemini-1.5-pro"]:
+                try:
+                    model = genai.GenerativeModel(
+                        model_name=m_name,
+                        generation_config={"response_mime_type": "application/json"},
+                        system_instruction=system_instruction
+                    )
+                    response = model.generate_content(prompt)
+                    text = response.text
+                    logger.info(f"Gemini API ({m_name}) raw response: {text[:100]}...")
+                    
+                    cleaned_text = self._clean_json_text(text)
+                    json_data = json.loads(cleaned_text)
+                    return schema.model_validate(json_data)
+                except Exception as e:
+                    logger.warning(f"Tier 1 model '{m_name}' failed: {e}. Trying next model...")
+            
+            logger.warning("All Tier 1 Cloud Gemini models failed/blocked. Falling back to Tier 2 (Local Ollama / Gemma 2).")
 
         # Tier 2: Local Ollama Server
         ollama_result = self._call_ollama(prompt, schema, system_instruction)
