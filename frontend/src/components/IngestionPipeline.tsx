@@ -97,7 +97,6 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
         if (result.batch_id) {
           targetBatch = result.batch_id;
           setActiveBatchId(result.batch_id);
-          await fetchDashboard(result.batch_id);
         }
       } else {
         setUploadStatus('error');
