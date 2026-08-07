@@ -128,16 +128,24 @@ class GeminiProvider:
             f"Output ONLY a valid JSON object mapping target_field_name -> exact_header_from_file."
         )
 
+        if not self.enabled:
+            return {}
+        
         try:
-            model = genai.GenerativeModel(
-                model_name=self.model_name,
-                generation_config={"response_mime_type": "application/json"}
-            )
-            response = model.generate_content(prompt)
-            cleaned = self._clean_json_text(response.text)
-            mapping = json.loads(cleaned)
-            logger.info(f"LLM Column Mapping Result: {mapping}")
-            return mapping
+            for m_name in [self.model_name, "gemini-1.5-flash"]:
+                try:
+                    model = genai.GenerativeModel(
+                        model_name=m_name,
+                        generation_config={"response_mime_type": "application/json"}
+                    )
+                    response = model.generate_content(prompt)
+                    cleaned = self._clean_json_text(response.text)
+                    mapping = json.loads(cleaned)
+                    logger.info(f"LLM Column Mapping Result ({m_name}): {mapping}")
+                    return mapping
+                except Exception as inner_e:
+                    logger.warning(f"LLM header mapping attempt with '{m_name}' failed: {inner_e}")
+            return {}
         except Exception as e:
             logger.error(f"LLM header mapping failed: {e}")
             return {}
