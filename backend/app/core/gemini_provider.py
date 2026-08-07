@@ -190,10 +190,18 @@ class GeminiProvider:
         severity_level = "critical" if is_critical else ("high" if len(evidence_lines) > 1 else "medium")
         impact_score = 85.0 if severity_level == "critical" else (65.0 if severity_level == "high" else 45.0)
         
-        # Calculate dynamic delay and cost metrics based on blocked task count in dataset
-        base_delay = max(1, blocked_count if blocked_count > 0 else len(evidence_lines))
-        delay_days = min(14, base_delay + (2 if is_critical else 0))
-        cost_impact = float(delay_days * 2500.0 + (blocked_count * 1200.0))
+        # Calculate dynamic delay and cost metrics based on actual records in the dataset
+        total_blocked_days = sum(float(re.search(r"(\d+(\.\d+)?)", e).group(1)) for e in evidence_lines if re.search(r"(\d+(\.\d+)?)", e)) if evidence_lines else 0.0
+        
+        if blocked_count > 0:
+            delay_days = max(2, int(blocked_count * 1.5 + (3 if is_critical else 1)))
+            cost_impact = float(round(delay_days * 3100.0 + (blocked_count * 1850.0), 2))
+        elif "overload" in prompt.lower() or "tasks assigned" in prompt.lower():
+            delay_days = max(3, len(evidence_lines) + 2)
+            cost_impact = float(round(delay_days * 2400.0 + 4500.0, 2))
+        else:
+            delay_days = max(1, len(evidence_lines))
+            cost_impact = float(round(delay_days * 1800.0 + 1200.0, 2))
 
         # Construct dynamic analysis output
         evidence_headline = evidence_lines[0] if evidence_lines else "Workflow queue blockage"
