@@ -34,9 +34,10 @@ async def stream_analysis(scenario_type: Optional[str] = Query(None), batch_id: 
     async def event_generator():
         queue = asyncio.Queue()
 
-        def status_callback(step_index: int, step_name: str, status: str, log: str, duration: str):
+        def status_callback(step_index: int, stage_id: str, step_name: str, status: str, log: str, duration: str):
             payload = {
                 "step_index": step_index,
+                "stage_id": stage_id,
                 "step_name": step_name,
                 "status": status,
                 "log": log,
@@ -63,7 +64,15 @@ async def stream_analysis(scenario_type: Optional[str] = Query(None), batch_id: 
 
         yield "data: {\"event\": \"done\"}\n\n"
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
 
 @app.post("/api/v1/analysis/run")
 def run_analysis(scenario_type: Optional[str] = Query(None), batch_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
@@ -75,8 +84,10 @@ def run_analysis(scenario_type: Optional[str] = Query(None), batch_id: Optional[
 
 @app.get("/api/v1/bottlenecks", response_model=List[BottleneckResponse])
 def get_bottlenecks(batch_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
+    if not batch_id or batch_id in ('NONE', ''):
+        return []
     query = db.query(Bottleneck)
-    if batch_id:
+    if batch_id and batch_id != 'ALL':
         query = query.filter(Bottleneck.batch_id == batch_id)
     return query.all()
 

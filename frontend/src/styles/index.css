@@ -93,6 +93,7 @@ body {
 /* Sidebar Navigation */
 .sidebar {
   width: var(--sidebar-width);
+  flex-shrink: 0;
   height: 100vh;
   position: sticky;
   top: 0;

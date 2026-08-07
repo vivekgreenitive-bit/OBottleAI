@@ -1,0 +1,6 @@
+task_id,task_name,owner,team,status,priority,created_date,due_date,dependencies,customer,blocked_duration
+SPRINT-10,Refactor Navigation Header,Alice Chen,Frontend,Completed,Low,2026-08-01,2026-08-04,,Acme Corp,0.0
+SPRINT-11,Update Button Hover States,Bob Dylan,Frontend,Completed,Low,2026-08-01,2026-08-04,,Acme Corp,0.0
+SPRINT-12,Add Dark Mode Toggle,Charlie Brown,Frontend,Completed,Medium,2026-08-02,2026-08-05,,Beta LLC,0.0
+SPRINT-13,Optimize Asset Loading,Diana Prince,Frontend,Completed,Medium,2026-08-02,2026-08-06,,Beta LLC,0.0
+SPRINT-14,Write Unit Tests for Auth,Ethan Hunt,QA,Completed,High,2026-08-03,2026-08-07,,GlobalTech,0.0

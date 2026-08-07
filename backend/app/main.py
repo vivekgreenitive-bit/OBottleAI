@@ -52,7 +52,22 @@ def ready():
 @app.get("/api/v1/dashboard", response_model=DashboardStats)
 def get_dashboard_data(batch_id: Optional[str] = Query(default=None), db: Session = Depends(get_db)):
     try:
-        metrics = OperationsAnalytics.calculate_metrics(db, batch_id=batch_id)
+        if not batch_id or batch_id in ('NONE', ''):
+            return DashboardStats(
+                operational_health_score=0.0,
+                active_bottlenecks_count=0,
+                critical_bottlenecks_count=0,
+                predicted_sla_breaches=0,
+                affected_customers_count=0,
+                estimated_delay_days=0,
+                estimated_cost_impact=0.0,
+                trend_summary="No scan selected.",
+                severity_distribution={"critical": 0, "high": 0, "medium": 0, "low": 0},
+                source_distribution={}
+            )
+
+        target_batch = None if batch_id == 'ALL' else batch_id
+        metrics = OperationsAnalytics.calculate_metrics(db, batch_id=target_batch)
         
         health_score = 100.0
         health_score -= metrics["overdue_count"] * 5
@@ -61,8 +76,8 @@ def get_dashboard_data(batch_id: Optional[str] = Query(default=None), db: Sessio
         health_score = max(min(health_score, 100.0), 0.0)
 
         b_query = db.query(Bottleneck).filter(Bottleneck.status == "Active")
-        if batch_id:
-            b_query = b_query.filter(Bottleneck.batch_id == batch_id)
+        if target_batch:
+            b_query = b_query.filter(Bottleneck.batch_id == target_batch)
         active_bottlenecks = b_query.all()
         
         severities = {"critical": 0, "high": 0, "medium": 0, "low": 0}
@@ -70,8 +85,8 @@ def get_dashboard_data(batch_id: Optional[str] = Query(default=None), db: Sessio
             severities[b.severity] = severities.get(b.severity, 0) + 1
 
         r_query = db.query(OperationalRecord)
-        if batch_id:
-            r_query = r_query.filter(OperationalRecord.batch_id == batch_id)
+        if target_batch:
+            r_query = r_query.filter(OperationalRecord.batch_id == target_batch)
         records = r_query.all()
         
         sources = {}
@@ -99,8 +114,8 @@ def get_dashboard_data(batch_id: Optional[str] = Query(default=None), db: Sessio
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-# Dynamic Proxy Client
-client = httpx.AsyncClient()
+# Dynamic Proxy Client with infinite timeout for long-running streaming AI agent executions
+client = httpx.AsyncClient(timeout=None)
 
 async def proxy_request(target_url: str, request: Request):
     """Generic reverse proxy forwarding request headers, params, and body payload with resilient exception handling."""

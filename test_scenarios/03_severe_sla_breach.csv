@@ -1,0 +1,7 @@
+task_id,task_name,owner,team,status,priority,created_date,due_date,dependencies,customer,blocked_duration
+TICKET-901,Payment Gateway Down in EU,John Doe,Support,Open,Critical,2026-07-20,2026-07-22,,SaaS Corp,15.0
+TICKET-902,Unable to Login via SAML SSO,Jane Smith,Support,Open,Critical,2026-07-21,2026-07-23,,Apex Inc,14.0
+TICKET-903,Data Sync Timeout on Dashboard,John Doe,Support,Open,High,2026-07-22,2026-07-24,,Nova Systems,13.0
+TICKET-904,API Token Invalidated Randomly,Jane Smith,Support,Open,High,2026-07-23,2026-07-25,,Vertex Global,12.0
+TICKET-905,Webhooks failing with 500 error,Bob Taylor,Support,Open,Critical,2026-07-24,2026-07-26,,Starlight,11.0
+TICKET-906,Billing Invoice Amount Incorrect,Bob Taylor,Support,In Progress,Medium,2026-07-25,2026-07-27,,Nexus,10.0

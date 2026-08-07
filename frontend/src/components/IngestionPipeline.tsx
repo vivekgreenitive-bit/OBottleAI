@@ -14,7 +14,7 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
   activeScenario, 
   setActiveScenario 
 }) => {
-  const { loadScenario, loading, runDiagnostics, fetchDashboard, uploadCSV, activeBatchId } = useSystem();
+  const { loadScenario, loading, runDiagnostics, fetchDashboard, fetchBatches, uploadCSV, activeBatchId, setActiveBatchId } = useSystem();
   
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [selectedSource, setSelectedSource] = useState<string>('');
@@ -26,14 +26,14 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
   // Agent execution progress states for wizard
   const [runProgress, setRunProgress] = useState<'idle' | 'running' | 'completed'>('idle');
   const [progressSteps, setProgressSteps] = useState([
-    { name: 'Data validation', status: 'pending', duration: '' },
-    { name: 'Data normalization & redaction', status: 'pending', duration: '' },
-    { name: 'Operational metrics analysis', status: 'pending', duration: '' },
-    { name: 'Bottleneck detection & prediction', status: 'pending', duration: '' },
-    { name: 'Root-cause analysis', status: 'pending', duration: '' },
-    { name: 'Business-impact assessment', status: 'pending', duration: '' },
-    { name: 'Recommendation generation', status: 'pending', duration: '' },
-    { name: 'Final report preparation', status: 'pending', duration: '' }
+    { id: 'data_validation', name: 'Data validation', status: 'pending', duration: '', log: '' },
+    { id: 'normalization_redaction', name: 'Data normalization & redaction', status: 'pending', duration: '', log: '' },
+    { id: 'operational_metrics', name: 'Operational metrics analysis', status: 'pending', duration: '', log: '' },
+    { id: 'bottleneck_detection', name: 'Bottleneck detection & prediction', status: 'pending', duration: '', log: '' },
+    { id: 'root_cause_analysis', name: 'Root-cause analysis (Gemini Pro)', status: 'pending', duration: '', log: '' },
+    { id: 'business_impact', name: 'Business-impact assessment', status: 'pending', duration: '', log: '' },
+    { id: 'recommendation_generation', name: 'Recommendation generation', status: 'pending', duration: '', log: '' },
+    { id: 'final_report', name: 'Final report preparation', status: 'pending', duration: '', log: '' }
   ]);
 
   // Sync state if demo is started from Home page
@@ -73,14 +73,14 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
 
     // Reset progress steps
     const initialSteps = [
-      { name: 'Data validation', status: 'pending', duration: '', log: '' },
-      { name: 'Data normalization & redaction', status: 'pending', duration: '', log: '' },
-      { name: 'Operational metrics analysis', status: 'pending', duration: '', log: '' },
-      { name: 'Bottleneck detection & prediction', status: 'pending', duration: '', log: '' },
-      { name: 'Root-cause analysis (Gemini Pro)', status: 'pending', duration: '', log: '' },
-      { name: 'Business-impact assessment', status: 'pending', duration: '', log: '' },
-      { name: 'Recommendation generation', status: 'pending', duration: '', log: '' },
-      { name: 'Final report preparation', status: 'pending', duration: '', log: '' }
+      { id: 'data_validation', name: 'Data validation', status: 'pending', duration: '', log: '' },
+      { id: 'normalization_redaction', name: 'Data normalization & redaction', status: 'pending', duration: '', log: '' },
+      { id: 'operational_metrics', name: 'Operational metrics analysis', status: 'pending', duration: '', log: '' },
+      { id: 'bottleneck_detection', name: 'Bottleneck detection & prediction', status: 'pending', duration: '', log: '' },
+      { id: 'root_cause_analysis', name: 'Root-cause analysis (Gemini Pro)', status: 'pending', duration: '', log: '' },
+      { id: 'business_impact', name: 'Business-impact assessment', status: 'pending', duration: '', log: '' },
+      { id: 'recommendation_generation', name: 'Recommendation generation', status: 'pending', duration: '', log: '' },
+      { id: 'final_report', name: 'Final report preparation', status: 'pending', duration: '', log: '' }
     ];
     setProgressSteps(initialSteps);
 
@@ -120,39 +120,54 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
     const apiHost = window.location.hostname || 'localhost';
     const streamUrl = `http://${apiHost}:8080/api/v1/analysis/stream?${params.toString()}`;
 
+    console.log(`[OBottleAI] Starting scan for targetBatch: ${targetBatch}`);
+    console.log(`[OBottleAI] Opening SSE connection to: ${streamUrl}`);
     const eventSource = new EventSource(streamUrl);
 
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log("[OBottleAI] SSE event received:", data);
+
         if (data.event === 'done') {
+          console.log("[OBottleAI] Scan completed successfully.");
           eventSource.close();
+          setActiveBatchId(targetBatch);
           setRunProgress('completed');
           fetchDashboard(targetBatch);
+          fetchBatches();
           return;
         }
 
-        const idx = data.step_index;
-        if (idx !== undefined && idx < initialSteps.length) {
-          setProgressSteps(prev => {
-            const copy = [...prev];
-            copy[idx] = {
-              name: data.step_name || copy[idx].name,
-              status: data.status,
-              duration: data.duration,
-              log: data.log
-            };
-            return copy;
+        setProgressSteps(prev => {
+          return prev.map((step, idx) => {
+            const isMatch = (data.stage_id && step.id === data.stage_id) || (data.step_index !== undefined && idx === data.step_index);
+            if (isMatch) {
+              return {
+                ...step,
+                status: data.status || step.status,
+                duration: data.duration || step.duration,
+                log: data.log !== undefined ? data.log : step.log
+              };
+            }
+            return step;
           });
-        }
+        });
       } catch (e) {
-        console.error("Error parsing agent event stream:", e);
+        console.error("[OBottleAI] Error parsing agent event stream:", e);
       }
     };
 
     eventSource.onerror = (err) => {
-      console.error("EventSource stream error:", err);
+      console.error("[OBottleAI] EventSource stream error:", err);
       eventSource.close();
+      setProgressSteps(prev => 
+        prev.map(step => 
+          step.status === 'running'
+            ? { ...step, status: 'failed', log: 'Stream connection error' }
+            : step
+        )
+      );
       setRunProgress('completed');
       fetchDashboard(targetBatch);
     };
@@ -252,25 +267,26 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '2px',
-                  background: step.status === 'completed' ? 'rgba(16, 185, 129, 0.03)' : step.status === 'running' ? 'rgba(59, 130, 246, 0.05)' : 'var(--bg-tertiary)',
-                  border: step.status === 'completed' ? '1px solid var(--color-success)' : step.status === 'running' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)'
+                  background: step.status === 'completed' ? 'rgba(16, 185, 129, 0.03)' : step.status === 'running' ? 'rgba(59, 130, 246, 0.05)' : step.status === 'failed' ? 'rgba(239, 68, 68, 0.05)' : 'var(--bg-tertiary)',
+                  border: step.status === 'completed' ? '1px solid var(--color-success)' : step.status === 'running' ? '1px solid var(--color-primary)' : step.status === 'failed' ? '1px solid var(--color-danger)' : '1px solid var(--glass-border)'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.8rem', fontWeight: '500' }}>
                     {step.status === 'completed' && '✓ '}
+                    {step.status === 'failed' && '✗ '}
                     {step.name}
                     {step.status === 'completed' && step.duration && ` (${step.duration})`}
                   </span>
                   <span 
-                    className={`badge ${step.status === 'completed' ? 'badge-low' : step.status === 'running' ? 'badge-medium' : 'badge-high'}`}
+                    className={`badge ${step.status === 'completed' ? 'badge-low' : step.status === 'running' ? 'badge-medium' : step.status === 'failed' ? 'badge-critical' : 'badge-high'}`}
                     style={{ textTransform: 'uppercase', fontSize: '0.65rem' }}
                   >
                     {step.status}
                   </span>
                 </div>
-                {(step.log || step.status === 'running') && (
-                  <div style={{ fontSize: '0.7rem', color: step.status === 'completed' ? 'var(--color-success)' : 'var(--color-primary)', fontFamily: 'monospace' }}>
+                {(step.log || step.status === 'running' || step.status === 'failed') && (
+                  <div style={{ fontSize: '0.7rem', color: step.status === 'completed' ? 'var(--color-success)' : step.status === 'failed' ? 'var(--color-danger)' : 'var(--color-primary)', fontFamily: 'monospace' }}>
                     ➜ {step.log || 'Agent executing...'}
                   </div>
                 )}
@@ -283,6 +299,7 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
       {/* DASHBOARD RESULTS - ALWAYS VISIBLE */}
       <div>
         <Dashboard 
+          setActiveTab={setActiveTab}
           onSelectBottleneck={(id) => {
             if (setActiveTab) setActiveTab('approvals');
           }} 

@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSystem } from '../context/SystemState';
 import { ShieldCheck, XCircle, User, MessageSquare, Star, Award, CheckCircle } from 'lucide-react';
 
 export const HumanGate: React.FC = () => {
-  const { approvals, activeRole, approveRecommendation, rejectRecommendation, submitFeedback } = useSystem();
+  const { approvals, activeRole, approveRecommendation, rejectRecommendation, submitFeedback, fetchDashboard } = useSystem();
+  
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
   
   const [approverName, setApproverName] = useState<string>('Ops Manager');
   const [comments, setComments] = useState<Record<number, string>>({});

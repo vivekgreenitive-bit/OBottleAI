@@ -1,0 +1,5 @@
+task_id,task_name,owner,team,status,priority,created_date,due_date,dependencies,customer,blocked_duration
+FIN-101,End-of-Month Merchant Settlement,Priya Sharma,Finance Ops,In Progress,Critical,2026-08-01,2026-08-03,,Merchant Tier 1,4.0
+FIN-102,Dispute Resolution Chargeback Batch,Priya Sharma,Finance Ops,In Progress,High,2026-08-02,2026-08-04,,Merchant Tier 1,3.0
+FIN-103,Foreign FX Currency Rate Table Feed,Third Party API,Integration,Blocked,Critical,2026-08-02,2026-08-04,,International Sellers,3.5
+FIN-104,Tax Compliance Audit Report Export,Priya Sharma,Finance Ops,In Progress,High,2026-08-03,2026-08-06,,Internal Tax Board,1.0

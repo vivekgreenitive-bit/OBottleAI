@@ -1,0 +1,5 @@
+task_id,task_name,owner,team,status,priority,created_date,due_date,dependencies,customer,blocked_duration
+ONB-301,Custom SAML Metadata Exchange,Rachel Green,Solutions Architect,In Progress,High,2026-07-25,2026-07-30,,Fortune 500 Bank,7.0
+ONB-302,HIPAA Business Associate Agreement (BAA),Legal Dept,Legal,Blocked,Critical,2026-07-20,2026-07-27,,Fortune 500 Bank,11.0
+ONB-303,Dedicated VPC Peering Setup,DevOps Team,Infrastructure,Blocked,High,2026-07-26,2026-08-01,ONB-302,Fortune 500 Bank,6.0
+ONB-304,"Bulk User Import (10,000 Seats)",Rachel Green,Solutions Architect,Blocked,Medium,2026-07-28,2026-08-02,ONB-301,Fortune 500 Bank,4.0

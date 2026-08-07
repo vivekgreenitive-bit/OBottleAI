@@ -1,0 +1,5 @@
+task_id,task_name,owner,team,status,priority,created_date,due_date,dependencies,customer,blocked_duration
+INFRA-801,Kubernetes Node Memory Exhaustion,Marcus Vance,DevOps,In Progress,Critical,2026-08-06,2026-08-07,,All Customers,0.5
+INFRA-802,Wildcard SSL Certificate Renewal,Marcus Vance,DevOps,Blocked,Critical,2026-08-05,2026-08-06,INFRA-801,All Customers,1.5
+INFRA-803,Primary Postgres DB Storage >92%,Elena Rostova,DevOps,In Progress,High,2026-08-06,2026-08-07,,All Customers,0.0
+INFRA-804,Redis Cluster Failover Test,Elena Rostova,DevOps,Blocked,High,2026-08-06,2026-08-08,INFRA-803,All Customers,0.8

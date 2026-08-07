@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useSystem } from '../context/SystemState';
 import { ResponsiveContainer, ComposedChart, XAxis, YAxis, Tooltip, Legend, Bar, Line } from 'recharts';
-import { ShieldAlert, Users, DollarSign, Clock, CheckCircle2, ArrowRight, ClipboardList, HelpCircle, Layers } from 'lucide-react';
+import { ShieldAlert, DollarSign, Clock, CheckCircle2, ArrowRight, ClipboardList, Layers, Info } from 'lucide-react';
 
 interface DashboardProps {
   onSelectBottleneck: (id: number) => void;
@@ -14,40 +14,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
   // Load first bottleneck details when batch changes or bottlenecks update
   useEffect(() => {
     if (bottlenecks.length > 0) {
-      const exists = selectedBottleneck && bottlenecks.some(b => b.id === selectedBottleneck.id);
-      if (!exists) {
-        selectBottleneckById(bottlenecks[0].id);
-      }
+      selectBottleneckById(bottlenecks[0].id);
     }
   }, [bottlenecks]);
 
   const handleBatchChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value === 'ALL' ? null : e.target.value;
+    const val = e.target.value === '' ? null : e.target.value;
     setActiveBatchId(val);
     await fetchDashboard(val);
   };
 
-  if (!stats || (stats.active_bottlenecks_count === 0 && bottlenecks.length === 0)) {
-    return (
-      <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', maxWidth: '600px', margin: '40px auto 0 auto' }}>
-        <HelpCircle size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
-        <h2 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '8px' }}>No Analyses Yet</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '20px' }}>
-          Upload operational logs or load a sample scenario to begin bottleneck detection.
-        </p>
-        <button className="btn btn-primary" onClick={() => setActiveTab?.('ingestion')} style={{ margin: '0 auto' }}>
-          <span>Start New Analysis</span>
-          <ArrowRight size={16} />
-        </button>
-      </div>
-    );
-  }
+  const hasSelectedData = activeBatchId !== null && stats !== null;
 
-  const businessValueData = bottlenecks.map(b => ({
+  const businessValueData = hasSelectedData ? bottlenecks.map(b => ({
     name: b.title.length > 15 ? b.title.substring(0, 15) + "..." : b.title,
     "Financial Risk ($)": b.estimated_cost_impact,
     "Timeline Delay (Days)": b.estimated_delay_days
-  }));
+  })) : [];
 
   return (
     <div>
@@ -59,7 +42,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
           <Layers size={18} style={{ color: 'var(--color-primary)' }} />
           <span style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: '700' }}>Log History Scans:</span>
           <select
-            value={activeBatchId || 'ALL'}
+            value={activeBatchId || ''}
             onChange={handleBatchChange}
             style={{
               background: '#111827 url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%233b82f6\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 10px center',
@@ -78,13 +61,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
               appearance: 'none'
             }}
           >
+            <option value="" style={{ background: '#111827', color: '#fff' }}>No scan selected</option>
             <option value="ALL" style={{ background: '#111827', color: '#fff' }}>All Log Scans Combined</option>
             {[...batches].reverse().map(b => {
               const match = b.batch_id.match(/^BATCH-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-(.*)$/);
               let label = b.batch_id;
               if (match) {
                 const [_, y, m, d, hh, mm, ss, fname] = match;
-                label = `${fname} [${y}-${m}-${d} ${hh}:${mm}:${ss}]`;
+                label = `Scan - ${fname} [${y}-${m}-${d} ${hh}:${mm}:${ss}]`;
               }
               return (
                 <option key={b.batch_id} value={b.batch_id} style={{ background: '#111827', color: '#fff' }}>
@@ -96,50 +80,65 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
         </div>
       </div>
 
+      {!hasSelectedData && (
+        <div className="glass-panel" style={{ padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Info size={20} style={{ color: 'var(--color-primary)' }} />
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: '500' }}>
+              Upload an operational dataset and run an Agent Scan to begin analysis.
+            </span>
+          </div>
+          <button className="btn btn-primary" onClick={() => setActiveTab?.('ingestion')} style={{ padding: '6px 14px', fontSize: '0.8rem' }}>
+            <span>Start Analysis</span>
+            <ArrowRight size={14} />
+          </button>
+        </div>
+      )}
+
       {/* Health metrics grid */}
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
         <div className="glass-panel metric-card">
           <div className="metric-title">
             <span>Operational Health</span>
-            <CheckCircle2 style={{ color: 'var(--color-success)' }} size={18} />
+            <CheckCircle2 style={{ color: hasSelectedData ? 'var(--color-success)' : 'var(--text-muted)' }} size={18} />
           </div>
-          <div className="metric-value" style={{ color: 'var(--color-success)', fontSize: '1.75rem', fontWeight: '800' }}>
-            {stats.operational_health_score}%
+          <div className="metric-value" style={{ color: hasSelectedData ? 'var(--color-success)' : 'var(--text-muted)', fontSize: '1.75rem', fontWeight: '800' }}>
+            {hasSelectedData ? `${stats.operational_health_score}%` : '--'}
           </div>
-          <p className="metric-trend trend-up">Stable flow</p>
+          <p className="metric-trend trend-up">{hasSelectedData ? 'Stable flow' : '--'}</p>
         </div>
 
         <div className="glass-panel metric-card">
           <div className="metric-title">
             <span>Active Bottlenecks</span>
-            <ShieldAlert style={{ color: 'var(--color-warning)' }} size={18} />
+            <ShieldAlert style={{ color: hasSelectedData ? 'var(--color-warning)' : 'var(--text-muted)' }} size={18} />
           </div>
-          <div className="metric-value" style={{ color: 'var(--color-warning)', fontSize: '1.75rem', fontWeight: '800' }}>
-            {stats.active_bottlenecks_count} Active
+          <div className="metric-value" style={{ color: hasSelectedData ? 'var(--color-warning)' : 'var(--text-muted)', fontSize: '1.75rem', fontWeight: '800' }}>
+            {hasSelectedData ? `${stats.active_bottlenecks_count} Active` : '--'}
           </div>
-          <p className="metric-trend trend-down">{stats.critical_bottlenecks_count} Critical Risks</p>
+          <p className="metric-trend trend-down">{hasSelectedData ? `${stats.critical_bottlenecks_count} Critical Risks` : '--'}</p>
         </div>
 
         <div className="glass-panel metric-card">
           <div className="metric-title">
             <span>SLA Breaches / At Risk</span>
-            <Clock style={{ color: 'var(--color-danger)' }} size={18} />
+            <Clock style={{ color: hasSelectedData ? 'var(--color-danger)' : 'var(--text-muted)' }} size={18} />
           </div>
-          <div className="metric-value" style={{ color: 'var(--color-danger)', fontSize: '1.75rem', fontWeight: '800' }}>
-            {stats.predicted_sla_breaches}
+          <div className="metric-value" style={{ color: hasSelectedData ? 'var(--color-danger)' : 'var(--text-muted)', fontSize: '1.75rem', fontWeight: '800' }}>
+            {hasSelectedData ? stats.predicted_sla_breaches : '--'}
           </div>
-          <p className="metric-trend trend-down">{stats.affected_customers_count} Customers Impacted</p>
+          <p className="metric-trend trend-down">{hasSelectedData ? `${stats.affected_customers_count} Customers Impacted` : '--'}</p>
         </div>
 
         <div className="glass-panel metric-card">
           <div className="metric-title">
             <span>Financial Penalty Exposure</span>
-            <DollarSign style={{ color: 'var(--color-primary)' }} size={18} />
+            <DollarSign style={{ color: hasSelectedData ? 'var(--color-primary)' : 'var(--text-muted)' }} size={18} />
           </div>
-          <div className="metric-value" style={{ fontSize: '1.75rem', fontWeight: '800' }}>
-            ${stats.estimated_cost_impact.toLocaleString()}
+          <div className="metric-value" style={{ color: hasSelectedData ? 'var(--text-primary)' : 'var(--text-muted)', fontSize: '1.75rem', fontWeight: '800' }}>
+            {hasSelectedData ? `$${stats.estimated_cost_impact.toLocaleString()}` : '--'}
           </div>
-          <p className="metric-trend trend-down">{stats.estimated_delay_days} Days Timeline Delay</p>
+          <p className="metric-trend trend-down">{hasSelectedData ? `${stats.estimated_delay_days} Days Timeline Delay` : '--'}</p>
         </div>
       </div>
 
@@ -150,7 +149,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
           This visual represents the financial risk and project delivery timeline delay predicted by the agents for each bottleneck.
         </p>
         <div style={{ width: '100%', height: '200px' }}>
-          {businessValueData.length > 0 ? (
+          {hasSelectedData && businessValueData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={businessValueData}>
                 <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={11} />
@@ -163,8 +162,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
               </ComposedChart>
             </ResponsiveContainer>
           ) : (
-            <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-              No operational bottlenecks detected. Go to New Analysis to upload a custom CSV file or load a sample dataset.
+            <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+              No analysis available yet.
             </div>
           )}
         </div>
@@ -179,7 +178,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
             <span>Ranked Bottlenecks Checklist</span>
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {bottlenecks.map((b, idx) => (
+            {hasSelectedData && bottlenecks.map((b, idx) => (
               <div 
                 key={b.id} 
                 className={`glass-panel list-item ${selectedBottleneck?.id === b.id ? 'active' : ''}`}
@@ -198,15 +197,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
                 <h4 style={{ fontSize: '0.95rem', fontWeight: '700', margin: 0 }}>{b.title}</h4>
               </div>
             ))}
-            {bottlenecks.length === 0 && (
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textAlign: 'center' }}>No bottlenecks found.</p>
+            {(!hasSelectedData || bottlenecks.length === 0) && (
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textAlign: 'center', padding: '16px 0' }}>
+                Run an Agent Scan to identify operational bottlenecks.
+              </p>
             )}
           </div>
         </div>
 
         {/* Right Column: In-Depth Details */}
         <div className="glass-panel" style={{ padding: '24px' }}>
-          {selectedBottleneck ? (
+          {hasSelectedData && selectedBottleneck ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               
               {/* Section A: What is happening */}
@@ -290,14 +291,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
                   className="btn btn-primary" 
                   onClick={() => setActiveTab?.('approvals')}
                 >
-                  <span>Authorize Mitigation Center</span>
+                  <span>Proceed to Approval Center</span>
                   <ArrowRight size={16} />
                 </button>
               </div>
 
             </div>
           ) : (
-            <p style={{ color: 'var(--text-secondary)', textAlign: 'center' }}>Select a report to view analysis.</p>
+            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '40px 0' }}>
+              Recommendations will appear after analysis.
+            </p>
           )}
         </div>
       </div>

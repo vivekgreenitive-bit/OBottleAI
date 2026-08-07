@@ -1,0 +1,8 @@
+task_id,task_name,owner,team,status,priority,created_date,due_date,dependencies,customer,blocked_duration
+DB-500,Core DB Schema Upgrade v3,David Vance,DBA,Blocked,Critical,2026-07-28,2026-08-02,,Enterprise Client,5.5
+QA-201,Verify Checkout End-to-End,Lisa Ray,QA,Blocked,Critical,2026-07-29,2026-08-03,DB-500,Enterprise Client,4.0
+QA-202,Verify Subscription Renewal,Lisa Ray,QA,Blocked,Critical,2026-07-29,2026-08-03,DB-500,Enterprise Client,4.0
+QA-203,Verify Tax Calculator,Kevin Miller,QA,Blocked,High,2026-07-30,2026-08-04,DB-500,Enterprise Client,3.5
+QA-204,Verify Discount Coupon Engine,Kevin Miller,QA,Blocked,High,2026-07-30,2026-08-04,DB-500,Enterprise Client,3.5
+QA-205,Verify Invoice PDF Generation,Tom Wright,QA,Blocked,Medium,2026-07-31,2026-08-05,DB-500,Enterprise Client,3.0
+QA-206,Verify Refund Processor,Tom Wright,QA,Blocked,Medium,2026-07-31,2026-08-05,DB-500,Enterprise Client,3.0

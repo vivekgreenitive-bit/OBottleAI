@@ -1,0 +1,5 @@
+task_id,task_name,owner,team,status,priority,created_date,due_date,dependencies,customer,blocked_duration
+CORE-701,GraphQL v2 Schema breaking changes,Tom Hardy,Backend Team,In Progress,Critical,2026-07-25,2026-07-30,,Global Mobile Apps,8.0
+FE-401,Adapt Web Dashboard to GraphQL v2,Sarah Connor,Frontend Team,Blocked,High,2026-07-28,2026-08-02,CORE-701,Web Users,6.0
+MOB-201,iOS App Store Build v4.2 Submission,John Connor,Mobile Team,Blocked,Critical,2026-07-29,2026-08-03,FE-401,iOS App Store,5.0
+MOB-202,Android Play Store Build v4.2 Submission,John Connor,Mobile Team,Blocked,Critical,2026-07-29,2026-08-03,FE-401,Android Play Store,5.0

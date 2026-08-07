@@ -1,0 +1,13 @@
+task_id,task_name,owner,team,status,priority,created_date,due_date,dependencies,customer,blocked_duration
+TASK-101,Fix Auth Gateway,Sarah Jenkins,Backend,In Progress,High,2026-08-01,2026-08-05,,Acme Corp,0.0
+TASK-102,Database Indexing,Sarah Jenkins,Backend,In Progress,Critical,2026-08-01,2026-08-04,,Acme Corp,0.0
+TASK-103,API Throttle Update,Sarah Jenkins,Backend,In Progress,Medium,2026-08-02,2026-08-06,,Beta LLC,0.0
+TASK-104,Stripe Webhook Handler,Sarah Jenkins,Backend,In Progress,High,2026-08-02,2026-08-07,,Beta LLC,0.0
+TASK-105,Cache Invalidation Bug,Sarah Jenkins,Backend,In Progress,Critical,2026-08-03,2026-08-05,,GlobalTech,0.0
+TASK-106,JWT Refresh Token Fix,Sarah Jenkins,Backend,In Progress,High,2026-08-03,2026-08-08,,GlobalTech,0.0
+TASK-107,Export CSV Memory Leak,Sarah Jenkins,Backend,In Progress,Medium,2026-08-04,2026-08-09,,OmniCorp,0.0
+TASK-108,Audit Logging Middleware,Sarah Jenkins,Backend,In Progress,Low,2026-08-04,2026-08-10,,OmniCorp,0.0
+TASK-109,User Profile Schema,Sarah Jenkins,Backend,In Progress,Medium,2026-08-05,2026-08-11,,CyberDyne,0.0
+TASK-110,Rate Limiting Redis Key,Sarah Jenkins,Backend,In Progress,High,2026-08-05,2026-08-12,,CyberDyne,0.0
+TASK-111,S3 File Upload Retry,Alex Rivera,Infrastructure,Completed,Low,2026-08-01,2026-08-03,,Acme Corp,0.0
+TASK-112,Docker Container Tuning,Alex Rivera,Infrastructure,Completed,Medium,2026-08-02,2026-08-04,,Beta LLC,0.0

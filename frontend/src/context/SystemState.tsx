@@ -140,19 +140,35 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const res = await fetch(`${API_BASE}/ingestions/batches`);
       const data = await res.json();
       setBatches(data);
-      if (Array.isArray(data) && data.length > 0 && !activeBatchId) {
-        const latestBatch = data[data.length - 1].batch_id;
-        setActiveBatchId(latestBatch);
-      }
     } catch (err) {
       console.error("Error fetching batches:", err);
+    }
+  };
+
+  const fetchApprovals = async (batchId?: string | null) => {
+    try {
+      const targetBatch = batchId !== undefined ? batchId : activeBatchId;
+      const bQuery = targetBatch ? `?batch_id=${encodeURIComponent(targetBatch)}` : '';
+      const aRes = await fetch(`${API_BASE}/approvals${bQuery}`);
+      const aData = await aRes.json();
+      setApprovals(aData);
+    } catch (err) {
+      console.error("Error fetching approvals:", err);
     }
   };
 
   const fetchDashboard = async (overrideBatchId?: string | null) => {
     try {
       const targetBatch = overrideBatchId !== undefined ? overrideBatchId : activeBatchId;
-      const bQuery = targetBatch ? `?batch_id=${encodeURIComponent(targetBatch)}` : '';
+      await fetchApprovals(targetBatch);
+
+      if (!targetBatch) {
+        setStats(null);
+        setBottlenecks([]);
+        await fetchBatches();
+        return;
+      }
+      const bQuery = `?batch_id=${encodeURIComponent(targetBatch)}`;
 
       const statsRes = await fetch(`${API_BASE}/dashboard${bQuery}`);
       const statsData = await statsRes.json();
@@ -161,10 +177,9 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const bRes = await fetch(`${API_BASE}/bottlenecks${bQuery}`);
       const bData = await bRes.json();
       setBottlenecks(bData);
-
-      const aRes = await fetch(`${API_BASE}/approvals`);
-      const aData = await aRes.json();
-      setApprovals(aData);
+      if (!bData || bData.length === 0) {
+        setSelectedBottleneck(null);
+      }
 
       const logRes = await fetch(`${API_BASE}/audit-logs`);
       const logData = await logRes.json();
@@ -302,8 +317,9 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   useEffect(() => {
-    fetchDashboard();
+    fetchBatches();
     fetchConfig();
+    fetchApprovals();
   }, []);
 
   return (
