@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from app.db.database import Base, engine, get_db
-from app.models.models import Recommendation, Approval, ActionExecution, SystemConfig, UserFeedback
+from app.models.models import Recommendation, Approval, ActionExecution, SystemConfig, UserFeedback, Bottleneck
 from app.schemas.schemas import (
     ApprovalRequest, ApprovalResponse, ActionExecutionResponse,
     SystemConfigCreate, SystemConfigResponse, UserFeedbackCreate
