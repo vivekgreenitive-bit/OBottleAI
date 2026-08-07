@@ -35,6 +35,13 @@ class WorkflowOrchestrator:
         start_time = time.time()
         logger.info(f"Starting Multi-Agent Diagnostics workflow for batch_id: {batch_id}...")
 
+        # Delete any pre-existing bottlenecks for this batch_id to prevent duplicates
+        if batch_id:
+            old_bs = db.query(Bottleneck).filter(Bottleneck.batch_id == batch_id).all()
+            for ob in old_bs:
+                db.delete(ob)
+            db.commit()
+
         # Step 0: Validation & Redaction Gate
         step0_time = time.time()
         if status_callback:
