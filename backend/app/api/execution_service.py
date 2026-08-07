@@ -29,13 +29,17 @@ app.add_middleware(
 action_executor = ActionExecutionAgent()
 
 @app.get("/api/v1/approvals")
-def get_pending_approvals(db: Session = Depends(get_db)):
-    recs = db.query(Recommendation).filter(Recommendation.status == "Pending Approval").all()
+def get_pending_approvals(batch_id: Optional[str] = Query(default=None), db: Session = Depends(get_db)):
+    query = db.query(Recommendation).filter(Recommendation.status == "Pending Approval")
+    if batch_id and batch_id not in ('ALL', 'NONE', ''):
+        query = query.join(Bottleneck).filter(Bottleneck.batch_id == batch_id)
+        
+    recs = query.all()
     results = []
     for r in recs:
         results.append({
             "id": r.id,
-            "bottleneck_title": r.bottleneck.title,
+            "bottleneck_title": r.bottleneck.title if r.bottleneck else "Operational Risk",
             "action": r.action,
             "owner": r.owner,
             "deadline": r.deadline,

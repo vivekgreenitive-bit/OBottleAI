@@ -3,7 +3,7 @@ import { useSystem } from '../context/SystemState';
 import { ShieldCheck, XCircle, User, MessageSquare, Star, Award, CheckCircle } from 'lucide-react';
 
 export const HumanGate: React.FC = () => {
-  const { approvals, activeRole, approveRecommendation, rejectRecommendation, submitFeedback, fetchDashboard } = useSystem();
+  const { approvals, activeRole, approveRecommendation, rejectRecommendation, submitFeedback, fetchDashboard, batches, activeBatchId, setActiveBatchId } = useSystem();
   
   useEffect(() => {
     fetchDashboard();
@@ -160,6 +160,51 @@ export const HumanGate: React.FC = () => {
                 />
                 <User size={14} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--text-muted)' }} />
               </div>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                Filter Approvals by Scan Batch
+              </label>
+              <select
+                value={activeBatchId || ''}
+                onChange={async (e) => {
+                  const val = e.target.value === '' ? null : e.target.value;
+                  setActiveBatchId(val);
+                  await fetchDashboard(val);
+                }}
+                style={{
+                  width: '100%',
+                  background: '#111827 url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%233b82f6\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 10px center',
+                  backgroundSize: '16px',
+                  color: '#ffffff',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '6px',
+                  padding: '8px 32px 8px 12px',
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  appearance: 'none'
+                }}
+              >
+                <option value="" style={{ background: '#111827', color: '#fff' }}>No scan selected</option>
+                <option value="ALL" style={{ background: '#111827', color: '#fff' }}>All Log Scans Combined</option>
+                {[...batches].reverse().map(b => {
+                  const match = b.batch_id.match(/^BATCH-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-(.*)$/);
+                  let label = b.batch_id;
+                  if (match) {
+                    const [_, y, m, d, hh, mm, ss, fname] = match;
+                    label = `${fname} [${y}-${m}-${d} ${hh}:${mm}:${ss}]`;
+                  }
+                  return (
+                    <option key={b.batch_id} value={b.batch_id} style={{ background: '#111827', color: '#fff' }}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
               Any actions altering external system states (e.g. Jira modifications or Slack alerts) are queued here.
