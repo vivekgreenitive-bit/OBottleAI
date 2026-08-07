@@ -103,7 +103,7 @@ def get_dashboard_data(batch_id: Optional[str] = Query(default=None), db: Sessio
 client = httpx.AsyncClient()
 
 async def proxy_request(target_url: str, request: Request):
-    """Generic reverse proxy forwarding request headers, params, and body payload."""
+    """Generic reverse proxy forwarding request headers, params, and body payload with resilient exception handling."""
     url = f"{target_url}{request.url.path}"
     if request.url.query:
         url += f"?{request.url.query}"
@@ -112,19 +112,34 @@ async def proxy_request(target_url: str, request: Request):
     # Host header must match destination to prevent validation errors
     headers.pop("host", None)
     
-    req = client.build_request(
-        method=request.method,
-        url=url,
-        headers=headers,
-        content=await request.body()
-    )
-    
-    resp = await client.send(req, stream=True)
-    return StreamingResponse(
-        resp.aiter_raw(),
-        status_code=resp.status_code,
-        headers=dict(resp.headers)
-    )
+    try:
+        req = client.build_request(
+            method=request.method,
+            url=url,
+            headers=headers,
+            content=await request.body()
+        )
+        resp = await client.send(req, stream=True)
+        return StreamingResponse(
+            resp.aiter_raw(),
+            status_code=resp.status_code,
+            headers=dict(resp.headers)
+        )
+    except httpx.ConnectError:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Bad Gateway: Downstream service at '{target_url}' is currently unreachable."
+        )
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=504,
+            detail=f"Gateway Timeout: Request to downstream service at '{target_url}' timed out."
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"API Gateway Error while proxying to '{target_url}': {str(e)}"
+        )
 
 # Routing Maps
 @app.api_route("/api/v1/ingestions/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
