@@ -2,6 +2,7 @@ import re
 import csv
 import io
 import time
+from typing import Optional
 from datetime import datetime
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form, Query
 from fastapi.middleware.cors import CORSMiddleware
