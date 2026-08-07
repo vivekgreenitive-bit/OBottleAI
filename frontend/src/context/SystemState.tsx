@@ -139,8 +139,9 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const fetchBatches = async () => {
     try {
       const res = await fetch(`${API_BASE}/ingestions/batches`);
+      if (!res.ok) return;
       const data = await res.json();
-      setBatches(data);
+      setBatches(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching batches:", err);
     }
@@ -151,8 +152,9 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const targetBatch = batchId !== undefined ? batchId : activeBatchId;
       const bQuery = targetBatch ? `?batch_id=${encodeURIComponent(targetBatch)}` : '';
       const aRes = await fetch(`${API_BASE}/approvals${bQuery}`);
+      if (!aRes.ok) return;
       const aData = await aRes.json();
-      setApprovals(aData);
+      setApprovals(Array.isArray(aData) ? aData : []);
     } catch (err) {
       console.error("Error fetching approvals:", err);
     }
@@ -176,10 +178,13 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setStats(statsData);
 
       const bRes = await fetch(`${API_BASE}/bottlenecks${bQuery}`);
-      const bData = await bRes.json();
-      setBottlenecks(bData);
-      if (!bData || bData.length === 0) {
-        setSelectedBottleneck(null);
+      if (bRes.ok) {
+        const bData = await bRes.json();
+        const safeBottlenecks = Array.isArray(bData) ? bData : [];
+        setBottlenecks(safeBottlenecks);
+        if (safeBottlenecks.length === 0) {
+          setSelectedBottleneck(null);
+        }
       }
 
       const logRes = await fetch(`${API_BASE}/audit-logs`);
