@@ -22,10 +22,13 @@ source backend/venv/bin/activate
 
 sleep 3
 
-# 3. Start Vite Frontend Server
-echo "[3/4] Launching Vite Frontend Dev Server (Port: 5173)..."
-(cd frontend && npx vite --port 5173 --host 0.0.0.0 > ../frontend_dev.log 2>&1 &)
-
+# 3. Start Frontend Server
+echo "[3/4] Launching Frontend Server (Port: 5173)..."
+if [ -d "frontend/dist" ]; then
+  (cd frontend/dist && python3 -m http.server 5173 --bind 0.0.0.0 > ../../frontend_dev.log 2>&1 &)
+else
+  (cd frontend && npx vite --port 5173 --host 0.0.0.0 > ../frontend_dev.log 2>&1 &)
+fi
 sleep 2
 
 # 4. Perform Health Check Verification
