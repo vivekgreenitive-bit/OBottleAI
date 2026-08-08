@@ -209,7 +209,8 @@ async def ingest_jira_cloud(req: JiraIngestRequest, db: Session = Depends(get_db
     redacts PII email addresses, and ingests tickets as OperationalRecords.
     """
     clean_domain = req.jira_domain.replace("https://", "").replace("http://", "").strip("/")
-    jira_url = f"https://{clean_domain}/rest/api/3/search"
+    jira_url = f"https://{clean_domain}/rest/api/3/search/jql"
+    fallback_url = f"https://{clean_domain}/rest/api/3/search"
     jql_query = f"project = '{req.project_key}' ORDER BY created DESC"
     
     now = datetime.utcnow()
@@ -224,6 +225,13 @@ async def ingest_jira_cloud(req: JiraIngestRequest, db: Session = Depends(get_db
                 auth=(req.email, req.api_token),
                 headers={"Accept": "application/json"}
             )
+            if resp.status_code != 200:
+                resp = await client.get(
+                    fallback_url,
+                    params={"jql": jql_query, "maxResults": 50},
+                    auth=(req.email, req.api_token),
+                    headers={"Accept": "application/json"}
+                )
             
         if resp.status_code != 200:
             raise HTTPException(status_code=resp.status_code, detail=f"Jira API returned error: {resp.text[:200]}")
