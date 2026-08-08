@@ -100,8 +100,8 @@ export const App: React.FC = () => {
             <span style={{ color: 'var(--color-primary)', fontWeight: '700' }}>
               {activeTab === 'home' && 'Home'}
               {activeTab === 'ingestion' && 'Analysis & Results'}
-              {activeTab === 'approvals' && 'Approval'}
-              {activeTab === 'actions' && 'Actions'}
+              {activeTab === 'approvals' && 'Approval Gate'}
+              {activeTab === 'actions' && 'Notifications & Follow-ups'}
               {activeTab === 'audit' && 'Audit Logs'}
               {activeTab === 'settings' && 'System (Advanced)'}
             </span>

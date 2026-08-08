@@ -13,8 +13,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
   const menuItems = [
     { id: 'home', label: 'Home', icon: HomeIcon },
     { id: 'ingestion', label: 'Analysis & Results', icon: LayoutDashboard },
-    { id: 'approvals', label: 'Approval', icon: ShieldCheck },
-    { id: 'actions', label: 'Actions', icon: Play },
+    { id: 'approvals', label: 'Approval Gate', icon: ShieldCheck },
+    { id: 'actions', label: 'Notifications & Follow-ups', icon: Play },
     { id: 'audit', label: 'Audit Logs', icon: FileText },
     { id: 'settings', label: 'System (Advanced)', icon: SettingsIcon }
   ];

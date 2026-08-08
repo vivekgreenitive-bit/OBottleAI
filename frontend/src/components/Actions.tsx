@@ -38,9 +38,9 @@ export const Actions: React.FC = () => {
 
   return (
     <div>
-      <h1 style={{ marginBottom: '24px', fontSize: '2rem', fontWeight: '700' }}>Executed Mitigations</h1>
+      <h1 style={{ marginBottom: '24px', fontSize: '2rem', fontWeight: '700' }}>Notifications & Follow-up Execution Logs</h1>
       <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px' }}>
-        Track real-time statuses and integration logs of authorized automated workflows triggered via Slack and Jira APIs.
+        Track real-time outbound notifications, follow-up status updates, and live integration logs dispatched via Jira Cloud and Slack.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
