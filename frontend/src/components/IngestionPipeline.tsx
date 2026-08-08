@@ -58,20 +58,25 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
   };
 
   const handleSyncJira = async () => {
-    if (!jiraDomain || !jiraProjectKey || !jiraEmail || !jiraToken) {
+    const cleanDomain = jiraDomain.trim();
+    const cleanProject = jiraProjectKey.trim();
+    const cleanEmail = jiraEmail.trim();
+    const cleanToken = jiraToken.trim();
+
+    if (!cleanDomain || !cleanProject || !cleanEmail || !cleanToken) {
       setUploadStatus('error');
       setUploadMessage('Please enter your Jira Domain, Project Key, Email, and API Token to connect.');
       return;
     }
 
     setUploadStatus('uploading');
-    setUploadMessage(`Connecting to live Jira Cloud (${jiraDomain}) and fetching issues for project '${jiraProjectKey}'...`);
+    setUploadMessage(`Connecting to live Jira Cloud (${cleanDomain}) and fetching issues for project '${cleanProject}'...`);
 
     const result = await syncJiraCloud({
-      jira_domain: jiraDomain,
-      project_key: jiraProjectKey,
-      email: jiraEmail,
-      api_token: jiraToken
+      jira_domain: cleanDomain,
+      project_key: cleanProject,
+      email: cleanEmail,
+      api_token: cleanToken
     });
 
     if (result.status === 'success') {
