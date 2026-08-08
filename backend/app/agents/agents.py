@@ -153,13 +153,15 @@ class ActionExecutionAgent:
             bottleneck_title = rec.bottleneck.title if rec.bottleneck else "Operational Bottleneck"
             
             # 1. LIVE JIRA CLOUD REST API WRITE-BACK
-            # Check if there is an active Jira record or project associated
+            # Check if there is an active Jira record associated with this bottleneck's batch_id
             jira_key = None
-            if rec.bottleneck and rec.bottleneck.records:
-                for r in rec.bottleneck.records:
-                    if r.entity_id and ("JIRA" in r.source or "-" in r.entity_id):
-                        jira_key = r.entity_id
-                        break
+            if rec.bottleneck and rec.bottleneck.batch_id:
+                record = db.query(OperationalRecord).filter(
+                    OperationalRecord.batch_id == rec.bottleneck.batch_id,
+                    OperationalRecord.entity_type == "jira_issue"
+                ).first()
+                if record and record.entity_id:
+                    jira_key = record.entity_id
 
             logs.append(f"[{timestamp_now}] Closed-Loop Action Initialized by Approver.")
 
