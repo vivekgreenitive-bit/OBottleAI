@@ -211,7 +211,7 @@ async def ingest_jira_cloud(req: JiraIngestRequest, db: Session = Depends(get_db
     clean_domain = req.jira_domain.replace("https://", "").replace("http://", "").strip("/")
     jira_url = f"https://{clean_domain}/rest/api/3/search/jql"
     fallback_url = f"https://{clean_domain}/rest/api/3/search"
-    jql_query = f"project = '{req.project_key}' ORDER BY created DESC"
+    jql_query = f"project = '{req.project_key}' OR project = '{req.project_key.upper()}' ORDER BY created DESC"
     
     now = datetime.utcnow()
     timestamp_str = now.strftime("%Y%m%d-%H%M%S")
@@ -232,6 +232,18 @@ async def ingest_jira_cloud(req: JiraIngestRequest, db: Session = Depends(get_db
                     auth=(req.email, req.api_token),
                     headers={"Accept": "application/json"}
                 )
+            
+            # If still empty or failed, fetch all issues in tenant without project filter fallback
+            if resp.status_code == 200:
+                jira_data = resp.json()
+                issues = jira_data.get("issues", [])
+                if not issues:
+                    resp = await client.get(
+                        fallback_url,
+                        params={"jql": "ORDER BY created DESC", "maxResults": 50},
+                        auth=(req.email, req.api_token),
+                        headers={"Accept": "application/json"}
+                    )
             
         if resp.status_code != 200:
             raise HTTPException(status_code=resp.status_code, detail=f"Jira API returned error: {resp.text[:200]}")
