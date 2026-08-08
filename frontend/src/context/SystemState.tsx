@@ -99,6 +99,7 @@ export interface SystemContextProps {
   fetchDashboard: (batchId?: string | null) => Promise<void>;
   fetchBatches: () => Promise<void>;
   uploadCSV: (file: File) => Promise<UploadResult>;
+  ingestWebhookPayload: (sourceName: string, records: any[]) => Promise<UploadResult>;
   loadScenario: (scenario: string) => Promise<void>;
   runDiagnostics: (scenarioType?: string, batchId?: string | null) => Promise<void>;
   approveRecommendation: (id: number, approver: string, comment?: string) => Promise<void>;
@@ -276,6 +277,30 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const ingestWebhookPayload = async (sourceName: string, records: any[]): Promise<UploadResult> => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/ingestions/webhook`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source_name: sourceName, records })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { status: 'error', message: data.detail || 'Webhook ingestion failed' };
+      }
+      if (data.batch_id) {
+        setActiveBatchId(data.batch_id);
+      }
+      return data;
+    } catch (err) {
+      console.error('Webhook ingestion failed:', err);
+      return { status: 'error', message: 'Webhook ingestion failed' };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const runDiagnostics = async (scenarioType?: string, overrideBatchId?: string | null) => {
     setDiagnosticStatus('running');
 
@@ -356,6 +381,7 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       fetchDashboard,
       fetchBatches,
       uploadCSV,
+      ingestWebhookPayload,
       loadScenario,
       runDiagnostics,
       approveRecommendation,

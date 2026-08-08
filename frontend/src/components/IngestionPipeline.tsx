@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSystem } from '../context/SystemState';
-import { Upload, Database, CheckCircle, AlertTriangle, Play, HelpCircle, Activity, ArrowRight, XCircle } from 'lucide-react';
+import { Upload, Database, CheckCircle, AlertTriangle, Play, HelpCircle, Activity, ArrowRight, XCircle, Globe, Code } from 'lucide-react';
 import { Dashboard } from './Dashboard';
 
 interface IngestionPipelineProps {
@@ -14,14 +14,42 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
   activeScenario, 
   setActiveScenario 
 }) => {
-  const { loadScenario, loading, runDiagnostics, fetchDashboard, fetchBatches, uploadCSV, activeBatchId, setActiveBatchId } = useSystem();
+  const { loadScenario, loading, runDiagnostics, fetchDashboard, fetchBatches, uploadCSV, ingestWebhookPayload, activeBatchId, setActiveBatchId } = useSystem();
   
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [selectedSource, setSelectedSource] = useState<string>('');
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [recordsCount, setRecordsCount] = useState<number>(0);
+  const [ingestMode, setIngestMode] = useState<'file' | 'webhook'>('file');
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [uploadMessage, setUploadMessage] = useState<string>('');
+
+  const handleSimulateWebhook = async () => {
+    setUploadStatus('uploading');
+    setUploadMessage('Ingesting live external webhook payload from Datadog_Alerts...');
+    
+    const samplePayload = [
+      { entity_id: "INC-901", task_name: "Database Connection Pool Contention", owner: "Priya Sharma", team: "DevOps", priority: "Critical", status: "Blocked", blocked_duration: 4.5, customer: "Enterprise Merchants" },
+      { entity_id: "INC-902", task_name: "Kafka Consumer Backpressure Stall", owner: "Priya Sharma", team: "DevOps", priority: "High", status: "Blocked", blocked_duration: 3.2, customer: "Enterprise Merchants" },
+      { entity_id: "INC-903", task_name: "Redis Cache Rehash Degradation", owner: "Nadia Ali", team: "Infrastructure", priority: "Medium", status: "In Progress", blocked_duration: 1.0, customer: "Global API Users" }
+    ];
+
+    const result = await ingestWebhookPayload("Datadog_Alerts", samplePayload);
+    if (result.status === 'success') {
+      setUploadStatus('success');
+      setUploadMessage(result.message);
+      if (result.batch_id) {
+        setActiveBatchId(result.batch_id);
+        setRunProgress('running');
+        await runDiagnostics(undefined, result.batch_id);
+        setRunProgress('completed');
+        fetchDashboard(result.batch_id);
+      }
+    } else {
+      setUploadStatus('error');
+      setUploadMessage(result.message || 'Webhook ingestion failed');
+    }
+  };
 
   // Agent execution progress states for wizard
   const [runProgress, setRunProgress] = useState<'idle' | 'running' | 'completed'>('idle');
@@ -185,49 +213,97 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
         )}
       </div>
 
-      {/* TOP UNIFIED ACTION BAR */}
+      {/* TOP UNIFIED ACTION BAR WITH DATA SOURCE SELECTOR */}
       <div className="glass-panel" style={{ padding: '20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '20px', alignItems: 'center' }}>
-          {/* CSV File Upload Dropzone */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '8px', textTransform: 'uppercase' }}>
-              Upload Raw CSV / Spreadsheet Log
-            </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <input type="file" accept=".csv" id="csv-single-file" style={{ display: 'none' }} onChange={handleFileChange} disabled={runProgress === 'running'} />
-              <label 
-                htmlFor="csv-single-file" 
-                className="btn btn-secondary" 
-                style={{ 
-                  flex: 1, 
-                  padding: '12px 18px', 
-                  justifyContent: 'flex-start', 
-                  cursor: runProgress === 'running' ? 'not-allowed' : 'pointer',
-                  border: '1px dashed var(--color-primary)'
-                }}
-              >
-                <Upload size={18} style={{ color: 'var(--color-primary)' }} />
-                <span style={{ fontWeight: '600', fontSize: '0.92rem' }}>
-                  {csvFile ? csvFile.name : 'Choose CSV / Excel Log File to Analyze...'}
-                </span>
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
+          <button 
+            className={`btn ${ingestMode === 'file' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => { setIngestMode('file'); setUploadMessage(''); }}
+            style={{ padding: '6px 14px', fontSize: '0.82rem', fontWeight: '600' }}
+          >
+            <Upload size={14} />
+            <span>CSV File Upload</span>
+          </button>
+          <button 
+            className={`btn ${ingestMode === 'webhook' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => { setIngestMode('webhook'); setUploadMessage(''); }}
+            style={{ padding: '6px 14px', fontSize: '0.82rem', fontWeight: '600' }}
+          >
+            <Globe size={14} />
+            <span>External REST Webhook</span>
+          </button>
+        </div>
+
+        {ingestMode === 'file' ? (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '20px', alignItems: 'center' }}>
+            {/* CSV File Upload Dropzone */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '8px', textTransform: 'uppercase' }}>
+                Upload Raw CSV / Spreadsheet Log
               </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <input type="file" accept=".csv" id="csv-single-file" style={{ display: 'none' }} onChange={handleFileChange} disabled={runProgress === 'running'} />
+                <label 
+                  htmlFor="csv-single-file" 
+                  className="btn btn-secondary" 
+                  style={{ 
+                    flex: 1, 
+                    padding: '12px 18px', 
+                    justifyContent: 'flex-start', 
+                    cursor: runProgress === 'running' ? 'not-allowed' : 'pointer',
+                    border: '1px dashed var(--color-primary)'
+                  }}
+                >
+                  <Upload size={18} style={{ color: 'var(--color-primary)' }} />
+                  <span style={{ fontWeight: '600', fontSize: '0.92rem' }}>
+                    {csvFile ? csvFile.name : 'Choose CSV / Excel Log File to Analyze...'}
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {/* Trigger Agent Scan Button */}
+            <div style={{ paddingTop: '22px' }}>
+              <button
+                className="btn btn-primary"
+                onClick={startAnalysis}
+                disabled={runProgress === 'running' || !csvFile}
+                style={{ padding: '12px 24px', fontSize: '0.98rem', fontWeight: '700' }}
+              >
+                <Play size={18} />
+                <span>Run Agent Scan</span>
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '700', color: 'var(--color-primary)' }}>External REST API Webhook Ingress</h4>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  POST live JSON payloads directly from your CI/CD pipelines, PagerDuty, or external databases.
+                </p>
+              </div>
+              <button
+                className="btn btn-primary"
+                onClick={handleSimulateWebhook}
+                disabled={runProgress === 'running'}
+                style={{ padding: '10px 20px', fontSize: '0.9rem', fontWeight: '700' }}
+              >
+                <Globe size={16} />
+                <span>Ingest Live External Payload & Scan</span>
+              </button>
+            </div>
 
-          {/* Trigger Agent Scan Button */}
-          <div style={{ paddingTop: '22px' }}>
-            <button
-              className="btn btn-primary"
-              onClick={startAnalysis}
-              disabled={runProgress === 'running' || !csvFile}
-              style={{ padding: '12px 24px', fontSize: '0.98rem', fontWeight: '700' }}
-            >
-              <Play size={18} />
-              <span>Run Agent Scan</span>
-              <ArrowRight size={18} />
-            </button>
+            <div style={{ background: '#0b0f19', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)', fontFamily: 'monospace', fontSize: '0.8rem', color: '#38bdf8' }}>
+              <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}># Test POST command from terminal:</div>
+              curl -X POST http://34.61.15.194:8080/api/v1/ingestions/webhook \<br />
+              &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
+              &nbsp;&nbsp;-d '{`{"source_name":"Datadog_Alerts","records":[{"entity_id":"INC-901","task_name":"Database Lock Contention","owner":"Priya Sharma","team":"DevOps","blocked_duration":4.5}]}`}'
+            </div>
           </div>
-        </div>
+        )}
 
         {uploadMessage && (
           <div style={{ marginTop: '12px', fontSize: '0.82rem', color: uploadStatus === 'error' ? 'var(--color-danger)' : 'var(--color-success)', display: 'flex', alignItems: 'center', gap: '6px' }}>

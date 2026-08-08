@@ -142,6 +142,63 @@ async def upload_file(file: UploadFile = File(...), source: str = Form("CSV_Uplo
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Ingestion failed: {str(e)}")
 
+from app.schemas.schemas import WebhookIngestRequest
+
+@app.post("/api/v1/ingestions/webhook")
+async def ingest_webhook(payload: WebhookIngestRequest, db: Session = Depends(get_db)):
+    if not payload.records:
+        raise HTTPException(status_code=400, detail="No records provided in webhook payload.")
+        
+    now = datetime.utcnow()
+    timestamp_str = now.strftime("%Y%m%d-%H%M%S")
+    source_clean = re.sub(r'[^a-zA-Z0-9._-]', '_', payload.source_name or "Webhook")
+    batch_id = f"BATCH-{timestamp_str}-{source_clean}"
+    
+    records_count = 0
+    try:
+        def parse_date_str(d_str):
+            if not d_str: return None
+            d_str = str(d_str).strip()
+            for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%m/%d/%Y", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"):
+                try:
+                    return datetime.strptime(d_str, fmt)
+                except:
+                    continue
+            return None
+
+        for item in payload.records:
+            records_count += 1
+            rec_id = item.entity_id or f"WH-{int(time.time())}-{records_count}"
+            redacted_owner = re.sub(r'[\w\.-]+@[\w\.-]+', '[REDACTED_EMAIL]', str(item.owner or "Unassigned"))
+            
+            record = OperationalRecord(
+                batch_id=batch_id,
+                source=f"External REST API: {source_clean}",
+                entity_type="task",
+                entity_id=rec_id,
+                project=item.project or "Default",
+                task_name=item.task_name or f"Live Ingested Task {records_count}",
+                owner=redacted_owner,
+                team=item.team or "Engineering",
+                status=item.status or "In Progress",
+                priority=item.priority or "Medium",
+                created_date=parse_date_str(item.created_date) or now,
+                due_date=parse_date_str(item.due_date),
+                blocked_duration=item.blocked_duration or 0.0,
+                customer=item.customer or "External System"
+            )
+            db.add(record)
+            
+        db.commit()
+        return {
+            "status": "success",
+            "batch_id": batch_id,
+            "message": f"Successfully ingested {records_count} operational records from external source '{source_clean}'."
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Webhook ingestion failed: {str(e)}")
+
 @app.get("/api/v1/ingestions/batches")
 def get_batches(db: Session = Depends(get_db)):
     records = db.query(OperationalRecord.batch_id, OperationalRecord.source, OperationalRecord.created_date).all()

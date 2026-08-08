@@ -27,6 +27,23 @@ class OperationalRecordCreate(BaseModel):
     cost_impact: float = 0.0
     meta_data: Optional[Dict[str, Any]] = None
 
+class WebhookIngestItem(BaseModel):
+    entity_id: Optional[str] = None
+    task_name: Optional[str] = None
+    owner: Optional[str] = "Unassigned"
+    team: Optional[str] = "Engineering"
+    project: Optional[str] = "Default"
+    status: Optional[str] = "In Progress"
+    priority: Optional[str] = "Medium"
+    created_date: Optional[str] = None
+    due_date: Optional[str] = None
+    customer: Optional[str] = "External System"
+    blocked_duration: Optional[float] = 0.0
+
+class WebhookIngestRequest(BaseModel):
+    source_name: Optional[str] = "External_REST_API"
+    records: List[WebhookIngestItem]
+
 class OperationalRecordResponse(OperationalRecordCreate):
     id: int
     batch_id: Optional[str] = None
