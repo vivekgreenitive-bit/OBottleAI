@@ -8,19 +8,19 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
-  const { activeRole } = useSystem();
+  const { activeRole, approvals, bottlenecks } = useSystem();
   
+  const pendingApprovalsCount = approvals.length;
+  const activeBottlenecksCount = bottlenecks.length;
+
   const menuItems = [
-    { id: 'home', label: 'Home', icon: HomeIcon },
-    { id: 'ingestion', label: 'Analysis & Results', icon: LayoutDashboard },
-    { id: 'approvals', label: 'Approval Gate', icon: ShieldCheck },
-    { id: 'actions', label: 'Notifications & Follow-ups', icon: Play },
-    { id: 'audit', label: 'Audit Logs', icon: FileText },
-    { id: 'settings', label: 'System (Advanced)', icon: SettingsIcon }
+    { id: 'home', label: 'Home', icon: HomeIcon, badge: 0 },
+    { id: 'ingestion', label: 'Analysis & Results', icon: LayoutDashboard, badge: activeBottlenecksCount, color: 'var(--color-primary)' },
+    { id: 'approvals', label: 'Approval Gate', icon: ShieldCheck, badge: pendingApprovalsCount, color: '#ef4444' },
+    { id: 'actions', label: 'Notifications & Follow-ups', icon: Play, badge: pendingApprovalsCount > 0 ? pendingApprovalsCount : 0, color: '#38bdf8' },
+    { id: 'audit', label: 'Audit Logs', icon: FileText, badge: 0 },
+    { id: 'settings', label: 'System (Advanced)', icon: SettingsIcon, badge: 0 }
   ];
-
-
-
 
   return (
     <div className="sidebar">
@@ -40,9 +40,31 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
               <div
                 className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
                 onClick={() => setActiveTab(item.id)}
+                style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
               >
-                <Icon size={20} />
-                <span>{item.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Icon size={20} />
+                  <span>{item.label}</span>
+                </div>
+
+                {/* Dynamic Notification Badge Pill with Pulse Effect */}
+                {item.badge > 0 && (
+                  <span 
+                    className="animate-pulse"
+                    style={{
+                      background: item.color || '#ef4444',
+                      color: '#ffffff',
+                      fontSize: '0.72rem',
+                      fontWeight: '800',
+                      padding: '2px 7px',
+                      borderRadius: '10px',
+                      boxShadow: `0 0 8px ${item.color || '#ef4444'}`,
+                      lineHeight: '1.2'
+                    }}
+                  >
+                    {item.badge}
+                  </span>
+                )}
               </div>
             </li>
           );
