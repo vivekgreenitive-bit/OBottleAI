@@ -1,28 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg-primary: #0a0e17;
-  --bg-secondary: rgba(16, 24, 40, 0.6);
-  --bg-tertiary: rgba(30, 41, 59, 0.4);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-glow: rgba(56, 189, 248, 0.15);
+  --bg-primary: #08060d;
+  --bg-secondary: rgba(22, 23, 29, 0.75);
+  --bg-tertiary: rgba(31, 32, 40, 0.5);
+  --glass-border: rgba(170, 59, 255, 0.18);
+  --glass-glow: rgba(170, 59, 255, 0.25);
   
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #f3f4f6;
+  --text-secondary: #a7a9b7;
+  --text-muted: #6b6375;
   
-  --color-primary: #38bdf8;       /* cyan */
-  --color-primary-glow: rgba(56, 189, 248, 0.4);
-  --color-success: #34d399;       /* green */
-  --color-success-glow: rgba(52, 211, 153, 0.4);
-  --color-warning: #fbbf24;       /* yellow */
-  --color-warning-glow: rgba(251, 191, 36, 0.4);
-  --color-danger: #f87171;        /* red */
-  --color-danger-glow: rgba(248, 113, 113, 0.4);
-  --color-purple: #a78bfa;        /* violet */
+  --color-primary: #aa3bff;       /* Founder Frameworks Lab Vibrant Violet */
+  --color-primary-glow: rgba(170, 59, 255, 0.4);
+  --color-success: #10b981;       /* emerald green */
+  --color-success-glow: rgba(16, 185, 129, 0.4);
+  --color-warning: #f59e0b;       /* amber gold */
+  --color-warning-glow: rgba(245, 158, 11, 0.4);
+  --color-danger: #ef4444;        /* rose red */
+  --color-danger-glow: rgba(239, 68, 68, 0.4);
+  --color-purple: #c084fc;        /* lavender purple */
   
-  --font-sans: 'Outfit', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
   
   --sidebar-width: 260px;
 }
@@ -97,7 +97,7 @@ body {
   height: 100vh;
   position: sticky;
   top: 0;
-  background: rgba(11, 15, 26, 0.85);
+  background: rgba(8, 6, 13, 0.95);
   border-right: 1px solid var(--glass-border);
   padding: 24px;
   display: flex;
