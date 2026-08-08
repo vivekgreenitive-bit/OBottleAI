@@ -100,6 +100,7 @@ export interface SystemContextProps {
   fetchBatches: () => Promise<void>;
   uploadCSV: (file: File) => Promise<UploadResult>;
   ingestWebhookPayload: (sourceName: string, records: any[]) => Promise<UploadResult>;
+  syncJiraCloud: (params: { jira_domain: string; project_key: string; email: string; api_token: string }) => Promise<UploadResult>;
   loadScenario: (scenario: string) => Promise<void>;
   runDiagnostics: (scenarioType?: string, batchId?: string | null) => Promise<void>;
   approveRecommendation: (id: number, approver: string, comment?: string) => Promise<void>;
@@ -301,6 +302,30 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const syncJiraCloud = async (params: { jira_domain: string; project_key: string; email: string; api_token: string }): Promise<UploadResult> => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/ingestions/jira`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { status: 'error', message: data.detail || 'Jira Cloud sync failed' };
+      }
+      if (data.batch_id) {
+        setActiveBatchId(data.batch_id);
+      }
+      return data;
+    } catch (err) {
+      console.error('Jira Cloud sync failed:', err);
+      return { status: 'error', message: 'Jira Cloud sync failed' };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const runDiagnostics = async (scenarioType?: string, overrideBatchId?: string | null) => {
     setDiagnosticStatus('running');
 
@@ -382,6 +407,7 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       fetchBatches,
       uploadCSV,
       ingestWebhookPayload,
+      syncJiraCloud,
       loadScenario,
       runDiagnostics,
       approveRecommendation,

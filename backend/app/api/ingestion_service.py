@@ -199,6 +199,97 @@ async def ingest_webhook(payload: WebhookIngestRequest, db: Session = Depends(ge
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Webhook ingestion failed: {str(e)}")
 
+import httpx
+from app.schemas.schemas import JiraIngestRequest
+
+@app.post("/api/v1/ingestions/jira")
+async def ingest_jira_cloud(req: JiraIngestRequest, db: Session = Depends(get_db)):
+    """
+    Connects to live Jira Cloud REST API, fetches active project issues, 
+    redacts PII email addresses, and ingests tickets as OperationalRecords.
+    """
+    clean_domain = req.jira_domain.replace("https://", "").replace("http://", "").strip("/")
+    jira_url = f"https://{clean_domain}/rest/api/3/search"
+    jql_query = f"project = '{req.project_key}' ORDER BY created DESC"
+    
+    now = datetime.utcnow()
+    timestamp_str = now.strftime("%Y%m%d-%H%M%S")
+    batch_id = f"BATCH-{timestamp_str}-JIRA_{req.project_key}"
+    
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.get(
+                jira_url,
+                params={"jql": jql_query, "maxResults": 50},
+                auth=(req.email, req.api_token),
+                headers={"Accept": "application/json"}
+            )
+            
+        if resp.status_code != 200:
+            raise HTTPException(status_code=resp.status_code, detail=f"Jira API returned error: {resp.text[:200]}")
+            
+        jira_data = resp.json()
+        issues = jira_data.get("issues", [])
+        
+        if not issues:
+            raise HTTPException(status_code=400, detail=f"No issues found in Jira project '{req.project_key}'.")
+            
+        records_count = 0
+        for issue in issues:
+            fields = issue.get("fields", {})
+            key = issue.get("key", f"JIRA-{records_count}")
+            summary = fields.get("summary", "Jira Issue")
+            
+            # Extract owner & redact PII
+            assignee = fields.get("assignee") or {}
+            raw_owner = assignee.get("displayName") or assignee.get("emailAddress") or "Unassigned"
+            redacted_owner = re.sub(r'[\w\.-]+@[\w\.-]+', '[REDACTED_EMAIL]', str(raw_owner))
+            
+            # Extract priority & status
+            priority_obj = fields.get("priority") or {}
+            priority_name = str(priority_obj.get("name", "medium")).lower()
+            status_obj = fields.get("status") or {}
+            status_name = status_obj.get("name", "In Progress")
+            
+            # Dates
+            created_str = fields.get("created")
+            created_dt = now
+            if created_str:
+                try:
+                    created_dt = datetime.fromisoformat(created_str.replace("Z", "+00:00")).replace(tzinfo=None)
+                except:
+                    pass
+                    
+            record = OperationalRecord(
+                batch_id=batch_id,
+                source=f"Jira Cloud Sync ({req.project_key})",
+                entity_type="jira_issue",
+                entity_id=key,
+                project=req.project_key,
+                task_name=summary,
+                owner=redacted_owner,
+                team="Engineering",
+                status=status_name,
+                priority=priority_name,
+                created_date=created_dt,
+                blocked_duration=3.5 if "block" in status_name.lower() or priority_name in ("critical", "highest", "high") else 0.5,
+                customer="Jira Cloud Tenant"
+            )
+            db.add(record)
+            records_count += 1
+            
+        db.commit()
+        return {
+            "status": "success",
+            "batch_id": batch_id,
+            "message": f"Successfully synced {records_count} live Jira issues from project '{req.project_key}'."
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Jira live sync failed: {str(e)}")
+
 @app.get("/api/v1/ingestions/batches")
 def get_batches(db: Session = Depends(get_db)):
     records = db.query(OperationalRecord.batch_id, OperationalRecord.source, OperationalRecord.created_date).all()

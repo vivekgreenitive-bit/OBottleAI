@@ -44,6 +44,12 @@ class WebhookIngestRequest(BaseModel):
     source_name: Optional[str] = "External_REST_API"
     records: List[WebhookIngestItem]
 
+class JiraIngestRequest(BaseModel):
+    jira_domain: str = Field(..., example="yourcompany.atlassian.net")
+    project_key: str = Field(..., example="PROJ")
+    email: str = Field(..., example="user@company.com")
+    api_token: str = Field(...)
+
 class OperationalRecordResponse(OperationalRecordCreate):
     id: int
     batch_id: Optional[str] = None

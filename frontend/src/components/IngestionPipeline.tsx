@@ -14,15 +14,21 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
   activeScenario, 
   setActiveScenario 
 }) => {
-  const { loadScenario, loading, runDiagnostics, fetchDashboard, fetchBatches, uploadCSV, ingestWebhookPayload, activeBatchId, setActiveBatchId } = useSystem();
+  const { loadScenario, loading, runDiagnostics, fetchDashboard, fetchBatches, uploadCSV, ingestWebhookPayload, syncJiraCloud, activeBatchId, setActiveBatchId } = useSystem();
   
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [selectedSource, setSelectedSource] = useState<string>('');
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [recordsCount, setRecordsCount] = useState<number>(0);
-  const [ingestMode, setIngestMode] = useState<'file' | 'webhook'>('file');
+  const [ingestMode, setIngestMode] = useState<'file' | 'webhook' | 'jira'>('file');
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [uploadMessage, setUploadMessage] = useState<string>('');
+
+  // Jira Cloud connection form state
+  const [jiraDomain, setJiraDomain] = useState<string>('acme-corp.atlassian.net');
+  const [jiraProjectKey, setJiraProjectKey] = useState<string>('PROJ');
+  const [jiraEmail, setJiraEmail] = useState<string>('devops@acme.com');
+  const [jiraToken, setJiraToken] = useState<string>('');
 
   const handleSimulateWebhook = async () => {
     setUploadStatus('uploading');
@@ -48,6 +54,39 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
     } else {
       setUploadStatus('error');
       setUploadMessage(result.message || 'Webhook ingestion failed');
+    }
+  };
+
+  const handleSyncJira = async () => {
+    if (!jiraDomain || !jiraProjectKey || !jiraEmail || !jiraToken) {
+      setUploadStatus('error');
+      setUploadMessage('Please enter your Jira Domain, Project Key, Email, and API Token to connect.');
+      return;
+    }
+
+    setUploadStatus('uploading');
+    setUploadMessage(`Connecting to live Jira Cloud (${jiraDomain}) and fetching issues for project '${jiraProjectKey}'...`);
+
+    const result = await syncJiraCloud({
+      jira_domain: jiraDomain,
+      project_key: jiraProjectKey,
+      email: jiraEmail,
+      api_token: jiraToken
+    });
+
+    if (result.status === 'success') {
+      setUploadStatus('success');
+      setUploadMessage(result.message);
+      if (result.batch_id) {
+        setActiveBatchId(result.batch_id);
+        setRunProgress('running');
+        await runDiagnostics(undefined, result.batch_id);
+        setRunProgress('completed');
+        fetchDashboard(result.batch_id);
+      }
+    } else {
+      setUploadStatus('error');
+      setUploadMessage(result.message || 'Jira Cloud sync failed');
     }
   };
 
@@ -232,6 +271,14 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
             <Globe size={14} />
             <span>External REST Webhook</span>
           </button>
+          <button 
+            className={`btn ${ingestMode === 'jira' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => { setIngestMode('jira'); setUploadMessage(''); }}
+            style={{ padding: '6px 14px', fontSize: '0.82rem', fontWeight: '600' }}
+          >
+            <Database size={14} />
+            <span>Live Jira Cloud Sync</span>
+          </button>
         </div>
 
         {ingestMode === 'file' ? (
@@ -276,7 +323,7 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
               </button>
             </div>
           </div>
-        ) : (
+        ) : ingestMode === 'webhook' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
@@ -301,6 +348,73 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
               curl -X POST http://34.61.15.194:8080/api/v1/ingestions/webhook \<br />
               &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
               &nbsp;&nbsp;-d '{`{"source_name":"Datadog_Alerts","records":[{"entity_id":"INC-901","task_name":"Database Lock Contention","owner":"Priya Sharma","team":"DevOps","blocked_duration":4.5}]}`}'
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '700', color: 'var(--color-primary)' }}>Live Jira Cloud REST Integration</h4>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  Fetch project issues, sprint task statuses, and blocked engineering items directly from Atlassian Jira Cloud.
+                </p>
+              </div>
+              <button
+                className="btn btn-primary"
+                onClick={handleSyncJira}
+                disabled={runProgress === 'running'}
+                style={{ padding: '10px 20px', fontSize: '0.9rem', fontWeight: '700' }}
+              >
+                <Database size={16} />
+                <span>Fetch Live Jira Issues & Run Scan</span>
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.5fr 1.5fr', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '4px' }}>Jira Subdomain</label>
+                <input 
+                  type="text" 
+                  className="btn btn-secondary" 
+                  style={{ width: '100%', textAlign: 'left', fontSize: '0.85rem' }} 
+                  placeholder="company.atlassian.net"
+                  value={jiraDomain}
+                  onChange={(e) => setJiraDomain(e.target.value)}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '4px' }}>Project Key</label>
+                <input 
+                  type="text" 
+                  className="btn btn-secondary" 
+                  style={{ width: '100%', textAlign: 'left', fontSize: '0.85rem' }} 
+                  placeholder="PROJ"
+                  value={jiraProjectKey}
+                  onChange={(e) => setJiraProjectKey(e.target.value)}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '4px' }}>Atlassian Email</label>
+                <input 
+                  type="email" 
+                  className="btn btn-secondary" 
+                  style={{ width: '100%', textAlign: 'left', fontSize: '0.85rem' }} 
+                  placeholder="user@company.com"
+                  value={jiraEmail}
+                  onChange={(e) => setJiraEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '4px' }}>Jira API Token / Webhook Secret</label>
+                <input 
+                  type="password" 
+                  className="btn btn-secondary" 
+                  style={{ width: '100%', textAlign: 'left', fontSize: '0.85rem' }} 
+                  placeholder="ATATT3xFfGF0..."
+                  value={jiraToken}
+                  onChange={(e) => setJiraToken(e.target.value)}
+                />
+              </div>
             </div>
           </div>
         )}
