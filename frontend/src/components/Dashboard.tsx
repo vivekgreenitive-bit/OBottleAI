@@ -61,8 +61,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
               appearance: 'none'
             }}
           >
-            <option value="" style={{ background: '#111827', color: '#fff' }}>No scan selected</option>
-            <option value="ALL" style={{ background: '#111827', color: '#fff' }}>All Log Scans Combined</option>
+            <option value="" style={{ background: '#111827', color: '#9ca3af' }}>Select a Scan Batch History...</option>
+            <option value="ALL" style={{ background: '#111827', color: '#60a5fa', fontWeight: 'bold' }}>All Log Scans Combined</option>
             {[...batches].reverse().map(b => {
               const match = b.batch_id.match(/^BATCH-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-(.*)$/);
               let label = b.batch_id;
@@ -71,7 +71,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectBottleneck, setAct
                 label = `Scan - ${fname} [${y}-${m}-${d} ${hh}:${mm}:${ss}]`;
               }
               return (
-                <option key={b.batch_id} value={b.batch_id} style={{ background: '#111827', color: '#fff' }}>
+                <option key={b.batch_id} value={b.batch_id} style={{ background: '#111827', color: '#ffffff' }}>
                   {label} ({b.record_count} rows)
                 </option>
               );
