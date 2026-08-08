@@ -95,6 +95,9 @@ class WorkflowOrchestrator:
 
             # Step 4: Group detected risks and run RAG & Root Cause Analysis for each distinct risk category
             created_bottlenecks = []
+            total_recs = 0
+            last_title = "Operational Risk"
+            last_severity = "high"
             
             for risk_idx, risk_item in enumerate(risks[:3]):
                 step4_time = time.time()
@@ -126,8 +129,15 @@ class WorkflowOrchestrator:
                     schema=GeminiOrchestratorSchema,
                     system_instruction=system_instruction
                 )
+                
+                if status_callback:
+                    status_callback(4, "root_cause_analysis", "Root-cause analysis", "completed", f"Synthesized: {risk_type}", f"{round(time.time() - step4_time, 1)}s")
 
                 # Step 5: Business Impact Assessment Agent
+                step5_time = time.time()
+                if status_callback:
+                    status_callback(5, "business_impact", "Business-impact assessment", "running", "Weighting SLA risks, timeline delays, and cost exposure...", "0.0s")
+
                 cust_impact = 90.0 if result_data.severity == "critical" else (70.0 if result_data.severity == "high" else 40.0)
                 sla_risk = 95.0 if result_data.sla_risk == "critical" else (75.0 if result_data.sla_risk == "high" else 45.0)
                 delay_risk = result_data.estimated_delay_days * 15.0
@@ -143,11 +153,21 @@ class WorkflowOrchestrator:
                     revenue_risk=revenue_risk,
                     scope_impact=scope_impact
                 )
+                
+                if status_callback:
+                    status_callback(5, "business_impact", "Business-impact assessment", "completed", f"Impact Score: {round(final_score, 1)} ({calculated_severity.upper()})", f"{round(time.time() - step5_time, 1)}s")
 
                 # Step 6: Save Bottleneck and Recommendations to DB
+                step6_time = time.time()
+                if status_callback:
+                    status_callback(6, "recommendation_generation", "Recommendation generation", "running", f"Drafting recommendations for {risk_type}...", "0.0s")
+
+                last_title = f"{risk_type}: {result_data.bottleneck_title.replace('Operational Risk: ', '')}"
+                last_severity = calculated_severity
+
                 db_bottleneck = Bottleneck(
                     batch_id=batch_id,
-                    title=f"{risk_type}: {result_data.bottleneck_title.replace('Operational Risk: ', '')}",
+                    title=last_title,
                     summary=result_data.summary,
                     process=result_data.process,
                     severity=calculated_severity,
@@ -171,6 +191,7 @@ class WorkflowOrchestrator:
                     db.add(rc)
 
                 for rec in result_data.recommended_actions:
+                    total_recs += 1
                     db_rec = Recommendation(
                         bottleneck_id=db_bottleneck.id,
                         priority=rec.priority,
@@ -184,19 +205,18 @@ class WorkflowOrchestrator:
                     )
                     db.add(db_rec)
                 
+                if status_callback:
+                    status_callback(6, "recommendation_generation", "Recommendation generation", "completed", f"Generated {len(result_data.recommended_actions)} recommendations.", f"{round(time.time() - step6_time, 1)}s")
+
                 created_bottlenecks.append(db_bottleneck)
 
             db.commit()
             latency = time.time() - start_time
-            time.sleep(0.6)
-
-            if status_callback:
-                status_callback(6, "recommendation_generation", "Recommendation generation", "completed", f"Generated {len(result_data.recommended_actions)} actionable recommendations.", f"{round(time.time() - step6_time, 1)}s")
+            time.sleep(0.4)
 
             # Step 7: Final Report Preparation
-            time.sleep(0.8)
             if status_callback:
-                status_callback(7, "final_report", "Final report preparation", "completed", "Report ready. Redirecting to Results Dashboard...", f"{round(latency, 1)}s")
+                status_callback(7, "final_report", "Final report preparation", "completed", f"Report ready with {len(created_bottlenecks)} bottlenecks. Redirecting...", f"{round(latency, 1)}s")
         except Exception as e:
             logger.error(f"Diagnostics error: {str(e)}", exc_info=True)
             if status_callback:
@@ -207,7 +227,7 @@ class WorkflowOrchestrator:
             agent="Orchestrator Agent",
             action="Analyze Bottleneck",
             input_ref=f"Records processed: {len(risks)} risks",
-            output_summary=f"Detected: '{result_data.bottleneck_title}' with severity {calculated_severity}",
+            output_summary=f"Detected: {len(created_bottlenecks)} bottlenecks (Last: '{last_title}')",
             status="Success",
             model_used=self.provider.model_name if self.provider.enabled else "Gemini Pro (Local Inference)",
             latency=latency,
