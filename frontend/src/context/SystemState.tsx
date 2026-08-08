@@ -157,9 +157,8 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const fetchApprovals = async (batchId?: string | null) => {
     try {
-      const targetBatch = batchId !== undefined ? batchId : activeBatchId;
-      const bQuery = targetBatch ? `?batch_id=${encodeURIComponent(targetBatch)}` : '';
-      const aRes = await fetch(`${API_BASE}/approvals${bQuery}`);
+      // Query pending approvals across system so notification badge count persists until action is completed
+      const aRes = await fetch(`${API_BASE}/approvals?batch_id=ALL`);
       if (!aRes.ok) return;
       const aData = await aRes.json();
       setApprovals(Array.isArray(aData) ? aData : []);
