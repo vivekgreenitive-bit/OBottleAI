@@ -63,7 +63,7 @@ export const IngestionPipeline: React.FC<IngestionPipelineProps> = ({
       const file = e.target.files[0];
       setCsvFile(file);
       setSelectedSource(file.name);
-      setUploadStatus('success');
+      setUploadStatus('idle');
       setUploadMessage(`File "${file.name}" staged. Click "Run Agent Scan" to upload and analyze.`);
     }
   };

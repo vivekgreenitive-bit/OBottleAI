@@ -261,6 +261,9 @@ export const SystemProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         body: formData
       });
       const data = await res.json();
+      if (!res.ok) {
+        return { status: 'error', message: data.detail || 'Upload failed' };
+      }
       if (data.batch_id) {
         setActiveBatchId(data.batch_id);
       }
